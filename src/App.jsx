@@ -5,6 +5,7 @@ import Fleets from "./pages/Fleets/Fleets";
 import Ships from "./pages/Ships/Ships";
 import Register from "./pages/Auth/Register"; 
 import Login from "./pages/Auth/Login";
+import Shipments from "./pages/Shipments/Shipments";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/companies" element={<Companies />} />
         <Route path="/fleets" element={<Fleets />} />
         <Route path="/ships" element={<Ships />} />
+        <Route path="/shipments" element={<Shipments />} />
         <Route path="*" element={<Navigate to="/companies" replace />} />
       </Routes>
     </BrowserRouter>
