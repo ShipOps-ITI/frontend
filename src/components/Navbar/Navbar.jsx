@@ -12,6 +12,8 @@ function Navbar() {
           <NavLink to="/companies">Companies</NavLink>
           <NavLink to="/fleets">Fleets</NavLink>
           <NavLink to="/ships">Ships</NavLink>
+          <NavLink to="/shipments">Shipments</NavLink>
+
         </div>
       </nav>
     </header>
