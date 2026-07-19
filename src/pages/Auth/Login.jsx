@@ -24,28 +24,20 @@ function Login() {
         e.preventDefault();
 
         try {
-
-            const response = await login(formData);
-
-            localStorage.setItem(
-                "accessToken",
-                response.data.accessToken
-            );
+            // login() already stores tokens in localStorage and returns data
+            const result = await login(formData);
 
             setMessage("Login Successful!");
+            console.log(result);
 
-            localStorage.setItem("user", JSON.stringify(response.data.user));
-
-            localStorage.setItem("token", response.data.token);
-
-            console.log(response.data);
-
-            // later:
-            navigate("/companies");
+            // Navigate after a short delay so user sees success message
+            setTimeout(() => {
+                navigate("/companies");
+            }, 500);
         } catch (err) {
-
             setMessage(
-                err.response?.data?.message ||
+                err.response?.data?.error ||
+                err.message ||
                 "Invalid email or password"
             );
         }
