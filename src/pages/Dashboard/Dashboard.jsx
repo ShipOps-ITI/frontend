@@ -14,6 +14,14 @@ import {
   CartesianGrid
 } from "recharts";
 
+
+const STATUS_COLORS = {
+  Delivered: "#12B76A",
+  Delayed: "#F04438",
+  "In Transit": "#2E90FA",
+  Pending: "#F79009",
+};
+
 import "./Dashboard.css";
 
 function getStatusClass(status) {
@@ -210,13 +218,21 @@ function Dashboard() {
           label
         >
 
-          {stats.charts.shipsByStatus.map((entry, index) => (
-            <Cell key={index} />
+          {stats.charts.shipsByStatus.map((entry) => (
+            <Cell
+              key={entry.status}
+              fill={STATUS_COLORS[entry.status]}
+            />
           ))}
 
         </Pie>
 
-        <Tooltip />
+        <Tooltip
+          contentStyle={{
+            borderRadius: "10px",
+            border: "1px solid #e4e7ec",
+          }}
+        />
 
         <Legend />
 
@@ -253,6 +269,7 @@ function Dashboard() {
 
         <Bar
           dataKey="count"
+          fill="#146C94"
         />
 
       </BarChart>

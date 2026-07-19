@@ -110,7 +110,12 @@ tbody tr:hover {
   background: #f9fafb;
 }
 
+.chart-card h2 {
 
+  color:#101828;
+  font-size:1.2rem;
+
+}
 
 /* ===========================
    Loading & Error
