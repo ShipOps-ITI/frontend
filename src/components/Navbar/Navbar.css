@@ -39,3 +39,37 @@
   color: #075985;
   background: #e0f2fe;
 }
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.user-name {
+  color: #475467;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.logout-btn {
+  background: #146c94;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+  background: #075985;
+  box-shadow: 0 2px 8px rgba(20, 108, 148, 0.2);
+}
+
+.logout-btn:active {
+  transform: scale(0.98);
+}
