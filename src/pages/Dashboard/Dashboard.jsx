@@ -16,6 +16,25 @@ import {
 
 import "./Dashboard.css";
 
+function getStatusClass(status) {
+  switch (status) {
+    case "Delivered":
+      return "status delivered";
+
+    case "Delayed":
+      return "status delayed";
+
+    case "In Transit":
+      return "status transit";
+
+    case "Pending":
+      return "status pending";
+
+    default:
+      return "status";
+  }
+}
+
 function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -122,7 +141,11 @@ function Dashboard() {
               {stats.latestShips.map((ship) => (
                 <tr key={ship.id}>
                   <td>{ship.name}</td>
-                  <td>{ship.status}</td>
+                  <td>
+                    <span className={getStatusClass(ship.status)}>
+                    {ship.status}
+                    </span>
+                  </td>
                   <td>{new Date(ship.eta).toLocaleString()}</td>
                 </tr>
               ))}
@@ -150,7 +173,11 @@ function Dashboard() {
                 <tr key={shipment.id}>
                   <td>{shipment.customer}</td>
                   <td>{shipment.ship_id}</td>
-                  <td>{shipment.status}</td>
+                  <td>
+                    <span className={getStatusClass(shipment.status)}>
+                    {shipment.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

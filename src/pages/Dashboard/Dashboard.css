@@ -53,10 +53,12 @@
 }
 
 .stat-card p {
-  margin: 12px 0 0;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #146c94;
+
+  margin:12px 0 0;
+  font-size:2rem;
+  font-weight:700;
+  color:#101828;
+
 }
 
 /* ===========================
@@ -108,27 +110,7 @@ tbody tr:hover {
   background: #f9fafb;
 }
 
-/* ===========================
-   Charts Placeholder
-=========================== */
 
-.chart-placeholder {
-  margin-top: 24px;
-  background: #fff;
-  border: 1px solid #e4e7ec;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgb(16 24 40 / 4%);
-}
-
-.chart-placeholder h2 {
-  margin-bottom: 12px;
-}
-
-.chart-placeholder p {
-  color: #667085;
-  margin: 0;
-}
 
 /* ===========================
    Loading & Error
@@ -216,5 +198,85 @@ tbody tr:hover {
     grid-template-columns:1fr;
 
   }
+
+}
+
+
+/* =========================
+   Status Badges
+========================= */
+
+.status {
+
+  display:inline-block;
+  padding:5px 12px;
+  border-radius:999px;
+  font-size:0.85rem;
+  font-weight:600;
+
+}
+
+
+/* Delivered */
+
+.status.delivered {
+
+  background:#dcfae6;
+  color:#027a48;
+
+}
+
+
+/* Delayed */
+
+.status.delayed {
+
+  background:#fee4e2;
+  color:#b42318;
+
+}
+
+
+/* In Transit */
+
+.status.transit {
+
+  background:#dbeafe;
+  color:#175cd3;
+
+}
+
+
+/* Pending */
+
+.status.pending {
+
+  background:#fef0c7;
+  color:#b54708;
+
+}
+
+
+
+
+/* =========================
+   Card Hover Effects
+========================= */
+
+.stat-card,
+.chart-card,
+.table-card {
+
+  transition:0.2s ease;
+
+}
+
+
+.stat-card:hover,
+.chart-card:hover,
+.table-card:hover {
+
+  transform:translateY(-3px);
+  box-shadow:0 6px 14px rgb(16 24 40 / 8%);
 
 }
