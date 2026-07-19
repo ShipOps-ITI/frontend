@@ -1,0 +1,254 @@
+.documents-page {
+  width: min(100% - 32px, 960px);
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+
+.documents-header {
+  margin-bottom: 28px;
+}
+
+
+.documents-header > div > p:last-child {
+  color: #667085;
+}
+
+
+/* =========================
+   Upload Form
+========================= */
+
+
+.document-form-card,
+.document-list-card {
+
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgb(16 24 40 / 4%);
+  margin-bottom: 20px;
+
+}
+
+
+.document-form {
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 18px;
+
+}
+
+
+.document-form label {
+
+  display: grid;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+}
+
+
+.document-form input,
+.document-form select {
+
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 0.95rem;
+
+}
+
+
+.document-form input:focus,
+.document-form select:focus {
+
+  outline: 2px solid #73c0e6;
+  border-color: #146c94;
+
+}
+
+
+/* =========================
+   Buttons
+========================= */
+
+
+.form-actions {
+
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+
+}
+
+
+button {
+
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+}
+
+
+button:disabled {
+
+  cursor: not-allowed;
+  opacity: .6;
+
+}
+
+
+button:not(.secondary-button):not(.danger-button) {
+
+  background: #146c94;
+  color: white;
+
+}
+
+
+.secondary-button {
+
+  background: #f2f4f7;
+  color: #344054;
+
+}
+
+
+.danger-button {
+
+  background: #d92d20;
+  color:white;
+
+}
+
+
+
+/* =========================
+   Documents List
+========================= */
+
+
+.list-heading {
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+
+}
+
+
+.list-heading span {
+
+  background:#f2f4f7;
+  color:#344054;
+  padding:4px 10px;
+  border-radius:999px;
+  font-weight:600;
+
+}
+
+
+
+.document-list {
+
+  border-top:1px solid #eaecf0;
+
+}
+
+
+
+.document-row {
+
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  padding:18px 0;
+  border-bottom:1px solid #eaecf0;
+
+}
+
+
+
+.document-row h3 {
+
+  margin-bottom:6px;
+
+}
+
+
+.document-row p {
+
+  margin-bottom:4px;
+  color:#667085;
+
+}
+
+
+
+.row-actions {
+
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+
+}
+
+
+
+.error-message {
+
+  color:#d92d20;
+  font-weight:600;
+  margin-bottom:18px;
+
+}
+
+
+
+/* =========================
+   Responsive
+========================= */
+
+
+@media(max-width:640px){
+
+
+  .documents-page {
+
+    padding:32px 0;
+
+  }
+
+
+  .document-form {
+
+    grid-template-columns:1fr;
+
+  }
+
+
+  .document-row {
+
+    flex-direction:column;
+
+  }
+
+
+  .row-actions {
+
+    justify-content:flex-start;
+
+  }
+
+}

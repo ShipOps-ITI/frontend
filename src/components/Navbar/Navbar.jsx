@@ -35,6 +35,8 @@ function Navbar() {
           <NavLink to="/fleets">Fleets</NavLink>
           <NavLink to="/ships">Ships</NavLink>
           <NavLink to="/shipments">Shipments</NavLink>
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/documents">Documents</NavLink>
 
         </div>
         <div className="nav-user">
