@@ -6,6 +6,8 @@ import Ships from "./pages/Ships/Ships";
 import Register from "./pages/Auth/Register"; 
 import Login from "./pages/Auth/Login";
 import Shipments from "./pages/Shipments/Shipments";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import Documents from "./pages/Documents/Documents";
 
 function App() {
   return (
@@ -19,6 +21,9 @@ function App() {
         <Route path="/fleets" element={<Fleets />} />
         <Route path="/ships" element={<Ships />} />
         <Route path="/shipments" element={<Shipments />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/documents" element={<Documents />} />
+
         <Route path="*" element={<Navigate to="/companies" replace />} />
       </Routes>
     </BrowserRouter>
