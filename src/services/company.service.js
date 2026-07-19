@@ -1,6 +1,7 @@
 import api from "../api/axios";
 
-export const getCompanies = () => api.get("/companies");
+export const getCompanies = (page = 1, limit = 10) =>
+    api.get("/companies", { params: { page, limit } });
 
 export const getCompany = (id) =>
     api.get(`/companies/${id}`);

@@ -1,6 +1,10 @@
 import api from "../api/axios";
 
-export const getFleets = () => api.get("/fleets");
+export const getFleets = (page = 1, limit = 10) =>
+  api.get("/fleets", { params: { page, limit } });
+
+export const getFleetsByCompany = (companyId) =>
+  api.get(`/fleets/company/${companyId}`);
 
 export const getFleet = (id) => api.get(`/fleets/${id}`);
 

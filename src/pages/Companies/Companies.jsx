@@ -5,6 +5,7 @@ import {
   getCompanies,
   updateCompany,
 } from "../../services/company.service";
+import Pagination from "../../components/Pagination/Pagination";
 import "./Companies.css";
 
 const emptyForm = {
@@ -19,6 +20,7 @@ function Companies() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,12 +28,13 @@ function Companies() {
     loadCompanies();
   }, []);
 
-  async function loadCompanies() {
+  async function loadCompanies(page = 1) {
     try {
       setLoading(true);
       setError("");
-      const response = await getCompanies();
+      const response = await getCompanies(page);
       setCompanies(response.data.data);
+      setPagination(response.data.pagination);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to load companies.");
     } finally {
@@ -68,7 +71,7 @@ function Companies() {
       }
 
       resetForm();
-      await loadCompanies();
+      await loadCompanies(editingId ? pagination?.page : 1);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to save company.");
     } finally {
@@ -88,7 +91,11 @@ function Companies() {
   }
 
   async function handleDelete(company) {
-    const confirmed = window.confirm(`Delete ${company.name}?`);
+    const fleetCount = company._count?.fleets || 0;
+    const shipCount = company._count?.ships || 0;
+    const confirmed = window.confirm(
+      `Delete ${company.name}? This permanently deletes ${fleetCount} fleet(s) and ${shipCount} ship(s). This cannot be undone.`
+    );
 
     if (!confirmed) {
       return;
@@ -102,7 +109,7 @@ function Companies() {
         resetForm();
       }
 
-      await loadCompanies();
+      await loadCompanies(companies.length === 1 && pagination?.page > 1 ? pagination.page - 1 : pagination?.page);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to delete company.");
     }
@@ -160,7 +167,7 @@ function Companies() {
       <section className="company-list-card">
         <div className="list-heading">
           <h2>All companies</h2>
-          <span>{companies.length}</span>
+          <span>{pagination?.total || 0}</span>
         </div>
 
         {loading ? (
@@ -188,6 +195,7 @@ function Companies() {
             ))}
           </div>
         )}
+        <Pagination pagination={pagination} onPageChange={loadCompanies} />
       </section>
     </main>
   );

@@ -6,6 +6,7 @@ import {
   getFleets,
   updateFleet,
 } from "../../services/fleet.service";
+import Pagination from "../../components/Pagination/Pagination";
 import "./Fleets.css";
 
 const emptyForm = {
@@ -16,12 +17,18 @@ const emptyForm = {
   createdByUserId: "",
 };
 
+function getErrorMessage(requestError, fallbackMessage) {
+  const validationError = requestError.response?.data?.errors?.[0]?.message;
+  return validationError || requestError.response?.data?.message || fallbackMessage;
+}
+
 function Fleets() {
   const [fleets, setFleets] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,15 +36,16 @@ function Fleets() {
     loadPageData();
   }, []);
 
-  async function loadPageData() {
+  async function loadPageData(page = 1) {
     try {
       setLoading(true);
       setError("");
-      const [fleetResponse, companyResponse] = await Promise.all([getFleets(), getCompanies()]);
+      const [fleetResponse, companyResponse] = await Promise.all([getFleets(page), getCompanies(1, 100)]);
       setFleets(fleetResponse.data.data);
+      setPagination(fleetResponse.data.pagination);
       setCompanies(companyResponse.data.data);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to load fleets.");
+      setError(getErrorMessage(requestError, "Unable to load fleets."));
     } finally {
       setLoading(false);
     }
@@ -64,19 +72,22 @@ function Fleets() {
         await updateFleet(editingId, {
           name: form.name,
           description: form.description || undefined,
-          managedByUserId: form.managedByUserId,
+          managedByUserId: Number(form.managedByUserId),
         });
       } else {
         await createFleet({
           ...form,
+          companyId: Number(form.companyId),
+          managedByUserId: Number(form.managedByUserId),
+          createdByUserId: Number(form.createdByUserId),
           description: form.description || undefined,
         });
       }
 
       resetForm();
-      await loadPageData();
+      await loadPageData(editingId ? pagination?.page : 1);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to save fleet.");
+      setError(getErrorMessage(requestError, "Unable to save fleet."));
     } finally {
       setSubmitting(false);
     }
@@ -95,7 +106,8 @@ function Fleets() {
   }
 
   async function handleDelete(fleet) {
-    if (!window.confirm(`Delete ${fleet.name}?`)) {
+    const shipCount = fleet._count?.ships || 0;
+    if (!window.confirm(`Delete ${fleet.name}? Its ${shipCount} ship(s) will remain but become unassigned from this fleet.`)) {
       return;
     }
 
@@ -107,9 +119,9 @@ function Fleets() {
         resetForm();
       }
 
-      await loadPageData();
+      await loadPageData(fleets.length === 1 && pagination?.page > 1 ? pagination.page - 1 : pagination?.page);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to delete fleet.");
+      setError(getErrorMessage(requestError, "Unable to delete fleet."));
     }
   }
 
@@ -152,13 +164,13 @@ function Fleets() {
 
           <label>
             Manager user ID
-            <input name="managedByUserId" value={form.managedByUserId} onChange={handleChange} required />
+              <input name="managedByUserId" type="number" min="1" value={form.managedByUserId} onChange={handleChange} required />
           </label>
 
           {!editingId && (
             <label>
               Creator user ID
-              <input name="createdByUserId" value={form.createdByUserId} onChange={handleChange} required />
+              <input name="createdByUserId" type="number" min="1" value={form.createdByUserId} onChange={handleChange} required />
             </label>
           )}
 
@@ -176,7 +188,7 @@ function Fleets() {
       <section className="fleet-list-card">
         <div className="list-heading">
           <h2>All fleets</h2>
-          <span>{fleets.length}</span>
+          <span>{pagination?.total || 0}</span>
         </div>
 
         {loading ? <p>Loading fleets...</p> : fleets.length === 0 ? <p>No fleets yet.</p> : (
@@ -196,6 +208,7 @@ function Fleets() {
             ))}
           </div>
         )}
+        <Pagination pagination={pagination} onPageChange={loadPageData} />
       </section>
     </main>
   );
