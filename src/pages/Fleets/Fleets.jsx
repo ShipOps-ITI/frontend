@@ -6,6 +6,7 @@ import {
   getFleets,
   updateFleet,
 } from "../../services/fleet.service";
+import { getUser } from "../../services/auth.service";
 import Pagination from "../../components/Pagination/Pagination";
 import "./Fleets.css";
 
@@ -13,8 +14,6 @@ const emptyForm = {
   companyId: "",
   name: "",
   description: "",
-  managedByUserId: "",
-  createdByUserId: "",
 };
 
 function getErrorMessage(requestError, fallbackMessage) {
@@ -23,6 +22,7 @@ function getErrorMessage(requestError, fallbackMessage) {
 }
 
 function Fleets() {
+  const loggedInUser = getUser();
   const [fleets, setFleets] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -68,18 +68,22 @@ function Fleets() {
       setSubmitting(true);
       setError("");
 
+      if (!loggedInUser?.id) {
+        setError("Your login session is missing user information. Please log in again.");
+        return;
+      }
+
       if (editingId) {
         await updateFleet(editingId, {
           name: form.name,
           description: form.description || undefined,
-          managedByUserId: Number(form.managedByUserId),
         });
       } else {
         await createFleet({
-          ...form,
           companyId: Number(form.companyId),
-          managedByUserId: Number(form.managedByUserId),
-          createdByUserId: Number(form.createdByUserId),
+          name: form.name,
+          managedByUserId: loggedInUser.id,
+          createdByUserId: loggedInUser.id,
           description: form.description || undefined,
         });
       }
@@ -98,8 +102,6 @@ function Fleets() {
       companyId: fleet.companyId,
       name: fleet.name,
       description: fleet.description || "",
-      managedByUserId: fleet.managedByUserId,
-      createdByUserId: fleet.createdByUserId,
     });
     setEditingId(fleet.id);
     setError("");
@@ -161,18 +163,6 @@ function Fleets() {
             Description <span>(optional)</span>
             <textarea name="description" value={form.description} onChange={handleChange} rows="3" />
           </label>
-
-          <label>
-            Manager user ID
-              <input name="managedByUserId" type="number" min="1" value={form.managedByUserId} onChange={handleChange} required />
-          </label>
-
-          {!editingId && (
-            <label>
-              Creator user ID
-              <input name="createdByUserId" type="number" min="1" value={form.createdByUserId} onChange={handleChange} required />
-            </label>
-          )}
 
           <div className="form-actions full-width">
             <button type="submit" disabled={submitting || (!editingId && companies.length === 0)}>

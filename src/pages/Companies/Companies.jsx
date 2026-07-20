@@ -6,6 +6,7 @@ import {
   updateCompany,
 } from "../../services/company.service";
 import Pagination from "../../components/Pagination/Pagination";
+import { countries } from "../../constants/countries";
 import "./Companies.css";
 
 const emptyForm = {
@@ -15,6 +16,48 @@ const emptyForm = {
   phone: "",
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^\+?[\d\s().-]{7,25}$/;
+
+function validateCompanyForm(form) {
+  const fieldErrors = {};
+  const phoneDigits = form.phone.replace(/\D/g, "");
+
+  if (form.name.trim().length < 2) {
+    fieldErrors.name = "Company name must be at least 2 characters.";
+  }
+
+  if (!form.country) {
+    fieldErrors.country = "Please select a country.";
+  }
+
+  if (!emailPattern.test(form.contactEmail.trim())) {
+    fieldErrors.contactEmail = "Enter a valid contact email address.";
+  }
+
+  if (
+    form.phone.trim()
+    && (!phonePattern.test(form.phone.trim()) || phoneDigits.length < 7 || phoneDigits.length > 15)
+  ) {
+    fieldErrors.phone = "Enter a valid phone number (7 to 15 digits).";
+  }
+
+  return fieldErrors;
+}
+
+function getServerFieldErrors(requestError) {
+  const errors = requestError.response?.data?.errors;
+
+  if (!Array.isArray(errors)) {
+    return {};
+  }
+
+  return errors.reduce((fieldErrors, error) => {
+    fieldErrors[error.field] = error.message;
+    return fieldErrors;
+  }, {});
+}
+
 function Companies() {
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -23,6 +66,7 @@ function Companies() {
   const [pagination, setPagination] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     loadCompanies();
@@ -45,23 +89,35 @@ function Companies() {
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((currentForm) => ({ ...currentForm, [name]: value }));
+    setFieldErrors((currentErrors) => ({ ...currentErrors, [name]: undefined }));
   }
 
   function resetForm() {
     setForm(emptyForm);
     setEditingId(null);
+    setFieldErrors({});
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
+    const validationErrors = validateCompanyForm(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setError("");
+      return;
+    }
+
     try {
       setSubmitting(true);
       setError("");
+      setFieldErrors({});
 
       const data = {
         ...form,
-        phone: form.phone || undefined,
+        name: form.name.trim(),
+        contactEmail: form.contactEmail.trim().toLowerCase(),
+        phone: form.phone.trim() || undefined,
       };
 
       if (editingId) {
@@ -73,7 +129,14 @@ function Companies() {
       resetForm();
       await loadCompanies(editingId ? pagination?.page : 1);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to save company.");
+      const serverFieldErrors = getServerFieldErrors(requestError);
+
+      if (Object.keys(serverFieldErrors).length > 0) {
+        setFieldErrors(serverFieldErrors);
+        setError("");
+      } else {
+        setError(requestError.response?.data?.message || "Unable to save company.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -88,6 +151,7 @@ function Companies() {
     });
     setEditingId(company.id);
     setError("");
+    setFieldErrors({});
   }
 
   async function handleDelete(company) {
@@ -128,25 +192,63 @@ function Companies() {
       <section className="company-form-card">
         <h2>{editingId ? "Edit company" : "Add company"}</h2>
 
-        <form onSubmit={handleSubmit} className="company-form">
+        <form onSubmit={handleSubmit} className="company-form" noValidate>
           <label>
             Company name
-            <input name="name" value={form.name} onChange={handleChange} minLength="2" required />
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? "company-name-error" : undefined}
+            />
+            {fieldErrors.name && <span id="company-name-error" className="field-error">{fieldErrors.name}</span>}
           </label>
 
           <label>
             Country
-            <input name="country" value={form.country} onChange={handleChange} minLength="2" required />
+            <select
+              name="country"
+              value={form.country}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.country)}
+              aria-describedby={fieldErrors.country ? "country-error" : undefined}
+            >
+              <option value="">Select a country</option>
+              {form.country && !countries.includes(form.country) && (
+                <option value={form.country}>{form.country}</option>
+              )}
+              {countries.map((country) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+            {fieldErrors.country && <span id="country-error" className="field-error">{fieldErrors.country}</span>}
           </label>
 
           <label>
             Contact email
-            <input name="contactEmail" type="email" value={form.contactEmail} onChange={handleChange} required />
+            <input
+              name="contactEmail"
+              type="email"
+              value={form.contactEmail}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.contactEmail)}
+              aria-describedby={fieldErrors.contactEmail ? "contact-email-error" : undefined}
+            />
+            {fieldErrors.contactEmail && <span id="contact-email-error" className="field-error">{fieldErrors.contactEmail}</span>}
           </label>
 
           <label>
             Phone <span>(optional)</span>
-            <input name="phone" type="tel" value={form.phone} onChange={handleChange} />
+            <input
+              name="phone"
+              type="tel"
+              value={form.phone}
+              onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.phone)}
+              aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+            />
+            {fieldErrors.phone && <span id="phone-error" className="field-error">{fieldErrors.phone}</span>}
           </label>
 
           <div className="form-actions">

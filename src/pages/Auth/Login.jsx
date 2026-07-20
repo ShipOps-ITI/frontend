@@ -1,93 +1,81 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../services/auth.service";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { validateLogin } from "./auth.validation";
 import "./Auth.css";
 
 function Login() {
-    const [formData, setFormData] = useState({
-        email: "",
-        password: ""
-    });
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState("");
 
-    const [message, setMessage] = useState("");
+  const handleChange = ({ target: { name, value } }) => {
+    setFormData((currentData) => ({ ...currentData, [name]: value }));
+    setErrors((currentErrors) => ({ ...currentErrors, [name]: undefined }));
+    setMessage("");
+  };
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const validationErrors = validateLogin(formData);
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      return;
+    }
 
-        try {
-            // login() already stores tokens in localStorage and returns data
-            const result = await login(formData);
+    try {
+      await login({ ...formData, email: formData.email.trim().toLowerCase() });
+      navigate("/companies");
+    } catch (error) {
+      setMessage(error.response?.data?.error || error.message || "Invalid email or password");
+    }
+  };
 
-            setMessage("Login Successful!");
-            console.log(result);
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1>Login</h1>
 
-            // Navigate after a short delay so user sees success message
-            setTimeout(() => {
-                navigate("/companies");
-            }, 500);
-        } catch (err) {
-            setMessage(
-                err.response?.data?.error ||
-                err.message ||
-                "Invalid email or password"
-            );
-        }
-    };
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <label>
+            Email
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
+            />
+            {errors.email && <span id="email-error" className="field-error">{errors.email}</span>}
+          </label>
 
-    return (
-        <div className="auth-page">
+          <label>
+            Password
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
+            />
+            {errors.password && <span id="password-error" className="field-error">{errors.password}</span>}
+          </label>
 
-            <div className="auth-card">
+          <button type="submit">Login</button>
+        </form>
 
-                <h1>Login</h1>
+        {message && <p className="form-message">{message}</p>}
 
-                <form
-                    className="auth-form"
-                    onSubmit={handleSubmit}
-                >
-
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={formData.email}
-                        onChange={handleChange}
-                    />
-
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                    />
-
-                    <button type="submit">
-                        Login
-                    </button>
-
-                </form>
-
-                {message && <p>{message}</p>}
-
-                <p>
-                    Don't have an account?
-                    <Link to="/register"> Register</Link>
-                </p>
-
-            </div>
-
-        </div>
-    );
+        <p>
+          Don't have an account? <Link to="/register">Register</Link>
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default Login;

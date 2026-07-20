@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Pagination from "../../components/Pagination/Pagination";
 import ShipMap from "../../components/ShipMap/ShipMap";
+import { countries, getCountryFlagImageUrl } from "../../constants/countries";
 import { getCompanies } from "../../services/company.service";
 import { getFleetsByCompany } from "../../services/fleet.service";
 import { createShip, deleteShip, getShips, updateShip } from "../../services/ship.service";
@@ -23,6 +24,33 @@ const emptyForm = {
 };
 
 const states = ["ACTIVE", "MAINTENANCE", "DOCKED", "AT_SEA"];
+const shipTypeGroups = [
+  {
+    label: "Cargo",
+    options: [
+      "All Cargo Vessels", "Bulk carrier", "General Cargo", "Container Ship", "Reefer", "Ro-Ro",
+      "Vehicles Carrier", "Cement Carrier", "Wood Chips Carrier", "Urea Carrier", "Aggregates Carrier",
+      "Limestone Carrier", "Landing Craft", "Livestock Carrier", "Heavy Load Carrier",
+    ],
+  },
+  {
+    label: "Tankers",
+    options: [
+      "All Tankers", "Crude Oil Tanker", "Oil Products Tanker", "Chemical/Oil Tanker", "LNG Tanker",
+      "LPG Tanker", "Asphalt/Bitumen", "Bunkering Tanker", "FSO/FPSO", "Other Tanker",
+    ],
+  },
+  {
+    label: "Passenger/Cruise",
+    options: [
+      "All Passenger/Cruise Ships", "Cruise Ship", "Passenger/Cargo Ship", "Passenger/Ro-Ro Ship", "Passenger Ship",
+    ],
+  },
+  {
+    label: "Other",
+    options: ["Fishing ships", "Yachts/Sailing Vessels", "Military", "Tugs", "Other type/ Auxiliary", "Unknown"],
+  },
+];
 const numberOrNull = (value) => (value === "" ? null : Number(value));
 const formatAisUpdate = (value) => {
   if (!value) return "No AIS update received";
@@ -65,7 +93,7 @@ function Ships() {
       const response = await getShips(page);
       setShips(response.data.data);
       setPagination(response.data.pagination);
-      currentPageRef.current = response.data.pagination.page;
+      currentPageRef.current = response.data.pagination?.page || page;
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to load ships.");
     } finally {
@@ -209,9 +237,35 @@ function Ships() {
           <label>Ship name<input name="name" value={form.name} onChange={handleChange} minLength="2" required /></label>
           <label>IMO number <span>(optional)</span><input name="imoNumber" value={form.imoNumber} onChange={handleChange} /></label>
           <label>MMSI number <span>(optional, required for AIS tracking)</span><input name="mmsiNumber" value={form.mmsiNumber} onChange={handleChange} /></label>
-          <label>Flag<input name="flag" value={form.flag} onChange={handleChange} placeholder="SA" required /></label>
+          <label>
+            Flag country
+            <select name="flag" value={form.flag} onChange={handleChange} required>
+              <option value="">Select a flag country</option>
+              {form.flag && !countries.includes(form.flag) && (
+                <option value={form.flag}>{form.flag}</option>
+              )}
+              {countries.map((country) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </label>
           <label>Capacity (tonnage)<input name="capacityTonnage" type="number" min="0" step="any" value={form.capacityTonnage} onChange={handleChange} required /></label>
-          <label>Ship type <span>(optional)</span><input name="shipType" value={form.shipType} onChange={handleChange} /></label>
+          <label>
+            Ship type <span>(optional)</span>
+            <select name="shipType" value={form.shipType} onChange={handleChange}>
+              <option value="">Select a ship type</option>
+              {form.shipType && !shipTypeGroups.some((group) => group.options.includes(form.shipType)) && (
+                <option value={form.shipType}>{form.shipType}</option>
+              )}
+              {shipTypeGroups.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((shipType) => (
+                    <option key={shipType} value={shipType}>{shipType}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
           <label>Status<select name="availabilityState" value={form.availabilityState} onChange={handleChange}>{states.map((state) => <option key={state} value={state}>{state}</option>)}</select></label>
           <label>Latitude <span>(optional)</span><input name="currentLatitude" type="number" step="any" value={form.currentLatitude} onChange={handleChange} /></label>
           <label>Longitude <span>(optional)</span><input name="currentLongitude" type="number" step="any" value={form.currentLongitude} onChange={handleChange} /></label>
@@ -237,7 +291,16 @@ function Ships() {
               <article className="ship-row" key={ship.id}>
                 <div>
                   <h3>{ship.name}</h3>
-                  <p>{ship.flag} · {ship.shipType || "Unspecified type"} · {ship.capacityTonnage} t {ship.mmsiNumber && `· MMSI ${ship.mmsiNumber}`}</p>
+                  <p>
+                    {getCountryFlagImageUrl(ship.flag) && (
+                      <img
+                        className="ship-flag"
+                        src={getCountryFlagImageUrl(ship.flag)}
+                        alt={`${ship.flag} flag`}
+                      />
+                    )}
+                    {ship.flag} · {ship.shipType || "Unspecified type"} · {ship.capacityTonnage} t {ship.mmsiNumber && `· MMSI ${ship.mmsiNumber}`}
+                  </p>
                   <p>{ship.company?.name} {ship.fleet && `· ${ship.fleet.name}`}</p>
                   <p className="ais-update-time">{formatAisUpdate(ship.lastAisUpdateAt)}</p>
                   <span className={`ship-state ${ship.availabilityState.toLowerCase().replace("_", "-")}`}>{ship.availabilityState.replace("_", " ")}</span>

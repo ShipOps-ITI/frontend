@@ -18,6 +18,15 @@ const emptyForm = {
   status: "Pending",
 };
 
+function getShipmentError(error, fallbackMessage) {
+  return (
+    error.response?.data?.errors?.[0]?.msg
+    || error.response?.data?.message
+    || error.response?.data?.error
+    || fallbackMessage
+  );
+}
+
 function Shipments() {
   const [shipments, setShipments] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -40,7 +49,7 @@ function Shipments() {
 
       setShipments(response.data.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Unable to load shipments.");
+      setError(getShipmentError(err, "Unable to load shipments."));
     } finally {
       setLoading(false);
     }
@@ -81,7 +90,7 @@ function Shipments() {
       resetForm();
       await loadShipments();
     } catch (err) {
-      setError(err.response?.data?.message || "Unable to save shipment.");
+      setError(getShipmentError(err, "Unable to save shipment."));
     } finally {
       setSubmitting(false);
     }
@@ -117,7 +126,7 @@ function Shipments() {
 
       await loadShipments();
     } catch (err) {
-      setError(err.response?.data?.message || "Unable to delete shipment.");
+      setError(getShipmentError(err, "Unable to delete shipment."));
     }
   }
 
