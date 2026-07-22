@@ -1,11 +1,15 @@
-import api from "../api/axios";
+import coreApi from "../api/core.api";
 
-export const getFleets = () => api.get("/fleets");
+export const getFleets = (page = 1, limit = 10) =>
+  coreApi.get("/fleets", { params: { page, limit } });
 
-export const getFleet = (id) => api.get(`/fleets/${id}`);
+export const getFleetsByCompany = (companyId) =>
+  coreApi.get(`/fleets/company/${companyId}`);
 
-export const createFleet = (data) => api.post("/fleets", data);
+export const getFleet = (id) => coreApi.get(`/fleets/${id}`);
 
-export const updateFleet = (id, data) => api.put(`/fleets/${id}`, data);
+export const createFleet = (data) => coreApi.post("/fleets", data);
 
-export const deleteFleet = (id) => api.delete(`/fleets/${id}`);
+export const updateFleet = (id, data) => coreApi.put(`/fleets/${id}`, data);
+
+export const deleteFleet = (id) => coreApi.delete(`/fleets/${id}`);

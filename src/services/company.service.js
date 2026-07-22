@@ -1,15 +1,16 @@
-import api from "../api/axios";
+import coreApi from "../api/core.api";
 
-export const getCompanies = () => api.get("/companies");
+export const getCompanies = (page = 1, limit = 10) =>
+    coreApi.get("/companies", { params: { page, limit } });
 
 export const getCompany = (id) =>
-    api.get(`/companies/${id}`);
+    coreApi.get(`/companies/${id}`);
 
 export const createCompany = (data) =>
-    api.post("/companies", data);
+    coreApi.post("/companies", data);
 
 export const updateCompany = (id, data) =>
-    api.put(`/companies/${id}`, data);
+    coreApi.put(`/companies/${id}`, data);
 
 export const deleteCompany = (id) =>
-    api.delete(`/companies/${id}`);
+    coreApi.delete(`/companies/${id}`);

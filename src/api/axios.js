@@ -22,8 +22,12 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        const authEndpoints = ["/login", "/register", "/refresh"];
+        const isAuthRequest = authEndpoints.some((endpoint) =>
+            originalRequest?.url?.endsWith(endpoint)
+        );
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !isAuthRequest && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {

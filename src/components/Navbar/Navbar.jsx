@@ -1,23 +1,14 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { logout, getUser } from "../../services/auth.service";
 import "./Navbar.css";
 
 function Navbar() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Get user from localStorage whenever route changes
-    const currentUser = getUser();
-    setUser(currentUser);
-  }, [location]); // Re-run when location changes
+  const user = getUser();
 
   const handleLogout = async () => {
     try {
       await logout();
-      setUser(null);
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);

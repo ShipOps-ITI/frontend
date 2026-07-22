@@ -1,0 +1,15 @@
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  color: #475467;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .pagination {
+    justify-content: center;
+  }
+}

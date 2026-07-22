@@ -1,0 +1,20 @@
+.ship-map-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgb(16 24 40 / 4%);
+  margin-bottom: 20px;
+}
+
+.ship-map {
+  height: 380px;
+  overflow: hidden;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.map-empty-state {
+  margin: 14px 0 0;
+  color: #667085;
+}

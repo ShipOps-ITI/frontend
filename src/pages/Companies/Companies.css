@@ -82,16 +82,29 @@ h1 {
   font-weight: 400;
 }
 
-.company-form input {
+.company-form input,
+.company-form select {
   width: 100%;
   border: 1px solid #d0d5dd;
   border-radius: 7px;
   padding: 10px 12px;
 }
 
-.company-form input:focus {
+.company-form input:focus,
+.company-form select:focus {
   outline: 2px solid #73c0e6;
   border-color: #146c94;
+}
+
+.company-form input[aria-invalid="true"],
+.company-form select[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+.field-error {
+  color: #b42318;
+  font-size: 0.8rem;
+  font-weight: 400;
 }
 
 .form-actions,

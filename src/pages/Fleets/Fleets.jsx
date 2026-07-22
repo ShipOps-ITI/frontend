@@ -6,22 +6,29 @@ import {
   getFleets,
   updateFleet,
 } from "../../services/fleet.service";
+import { getUser } from "../../services/auth.service";
+import Pagination from "../../components/Pagination/Pagination";
 import "./Fleets.css";
 
 const emptyForm = {
   companyId: "",
   name: "",
   description: "",
-  managedByUserId: "",
-  createdByUserId: "",
 };
 
+function getErrorMessage(requestError, fallbackMessage) {
+  const validationError = requestError.response?.data?.errors?.[0]?.message;
+  return validationError || requestError.response?.data?.message || fallbackMessage;
+}
+
 function Fleets() {
+  const loggedInUser = getUser();
   const [fleets, setFleets] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,15 +36,16 @@ function Fleets() {
     loadPageData();
   }, []);
 
-  async function loadPageData() {
+  async function loadPageData(page = 1) {
     try {
       setLoading(true);
       setError("");
-      const [fleetResponse, companyResponse] = await Promise.all([getFleets(), getCompanies()]);
+      const [fleetResponse, companyResponse] = await Promise.all([getFleets(page), getCompanies(1, 100)]);
       setFleets(fleetResponse.data.data);
+      setPagination(fleetResponse.data.pagination);
       setCompanies(companyResponse.data.data);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to load fleets.");
+      setError(getErrorMessage(requestError, "Unable to load fleets."));
     } finally {
       setLoading(false);
     }
@@ -60,23 +68,30 @@ function Fleets() {
       setSubmitting(true);
       setError("");
 
+      if (!loggedInUser?.id) {
+        setError("Your login session is missing user information. Please log in again.");
+        return;
+      }
+
       if (editingId) {
         await updateFleet(editingId, {
           name: form.name,
           description: form.description || undefined,
-          managedByUserId: form.managedByUserId,
         });
       } else {
         await createFleet({
-          ...form,
+          companyId: Number(form.companyId),
+          name: form.name,
+          managedByUserId: loggedInUser.id,
+          createdByUserId: loggedInUser.id,
           description: form.description || undefined,
         });
       }
 
       resetForm();
-      await loadPageData();
+      await loadPageData(editingId ? pagination?.page : 1);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to save fleet.");
+      setError(getErrorMessage(requestError, "Unable to save fleet."));
     } finally {
       setSubmitting(false);
     }
@@ -87,15 +102,14 @@ function Fleets() {
       companyId: fleet.companyId,
       name: fleet.name,
       description: fleet.description || "",
-      managedByUserId: fleet.managedByUserId,
-      createdByUserId: fleet.createdByUserId,
     });
     setEditingId(fleet.id);
     setError("");
   }
 
   async function handleDelete(fleet) {
-    if (!window.confirm(`Delete ${fleet.name}?`)) {
+    const shipCount = fleet._count?.ships || 0;
+    if (!window.confirm(`Delete ${fleet.name}? Its ${shipCount} ship(s) will remain but become unassigned from this fleet.`)) {
       return;
     }
 
@@ -107,9 +121,9 @@ function Fleets() {
         resetForm();
       }
 
-      await loadPageData();
+      await loadPageData(fleets.length === 1 && pagination?.page > 1 ? pagination.page - 1 : pagination?.page);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to delete fleet.");
+      setError(getErrorMessage(requestError, "Unable to delete fleet."));
     }
   }
 
@@ -150,18 +164,6 @@ function Fleets() {
             <textarea name="description" value={form.description} onChange={handleChange} rows="3" />
           </label>
 
-          <label>
-            Manager user ID
-            <input name="managedByUserId" value={form.managedByUserId} onChange={handleChange} required />
-          </label>
-
-          {!editingId && (
-            <label>
-              Creator user ID
-              <input name="createdByUserId" value={form.createdByUserId} onChange={handleChange} required />
-            </label>
-          )}
-
           <div className="form-actions full-width">
             <button type="submit" disabled={submitting || (!editingId && companies.length === 0)}>
               {submitting ? "Saving..." : editingId ? "Save changes" : "Add fleet"}
@@ -176,7 +178,7 @@ function Fleets() {
       <section className="fleet-list-card">
         <div className="list-heading">
           <h2>All fleets</h2>
-          <span>{fleets.length}</span>
+          <span>{pagination?.total || 0}</span>
         </div>
 
         {loading ? <p>Loading fleets...</p> : fleets.length === 0 ? <p>No fleets yet.</p> : (
@@ -196,6 +198,7 @@ function Fleets() {
             ))}
           </div>
         )}
+        <Pagination pagination={pagination} onPageChange={loadPageData} />
       </section>
     </main>
   );

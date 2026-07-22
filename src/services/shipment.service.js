@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const shipmentAPI = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: "http://localhost:5000/api/shipments",
 });
 
 shipmentAPI.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); 
+  const token = localStorage.getItem("accessToken");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -14,14 +14,14 @@ shipmentAPI.interceptors.request.use((config) => {
   return config;
 });
 
-export const getShipments = () => shipmentAPI.get("/shipments");
+export const getShipments = () => shipmentAPI.get("/");
 
-export const getShipment = (id) => shipmentAPI.get(`/shipments/${id}`);
+export const getShipment = (id) => shipmentAPI.get(`/${id}`);
 
-export const createShipment = (data) => shipmentAPI.post("/shipments", data);
+export const createShipment = (data) => shipmentAPI.post("/", data);
 
 export const updateShipment = (id, data) =>
-  shipmentAPI.put(`/shipments/${id}`, data);
+  shipmentAPI.put(`/${id}`, data);
 
 export const deleteShipment = (id) =>
-  shipmentAPI.delete(`/shipments/${id}`);
+  shipmentAPI.delete(`/${id}`);
