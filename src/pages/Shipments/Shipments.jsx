@@ -6,6 +6,7 @@ import {
   updateShipment,
 } from "../../services/shipment.service";
 import "./Shipments.css";
+import { useNavigate } from "react-router-dom";
 
 const emptyForm = {
   shipmentNumber: "",
@@ -28,6 +29,7 @@ function getShipmentError(error, fallbackMessage) {
 }
 
 function Shipments() {
+  const navigate = useNavigate();
   const [shipments, setShipments] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -239,8 +241,8 @@ function Shipments() {
               {submitting
                 ? "Saving..."
                 : editingId
-                ? "Save Changes"
-                : "Create Shipment"}
+                  ? "Save Changes"
+                  : "Create Shipment"}
             </button>
 
             {editingId && (
@@ -277,6 +279,7 @@ function Shipments() {
               <article
                 className="shipment-row"
                 key={shipment.id}
+                onClick={() => navigate(`/shipments/${shipment.id}`)}
               >
                 <div>
                   <h3>{shipment.shipmentNumber}</h3>
@@ -298,14 +301,20 @@ function Shipments() {
 
                   <button
                     className="secondary-button"
-                    onClick={() => handleEdit(shipment)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(shipment);
+                    }}
                   >
                     Edit
                   </button>
 
                   <button
                     className="danger-button"
-                    onClick={() => handleDelete(shipment)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(shipment);
+                    }}
                   >
                     Delete
                   </button>

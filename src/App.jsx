@@ -9,6 +9,7 @@ import Login from "./pages/Auth/Login";
 import Shipments from "./pages/Shipments/Shipments";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Documents from "./pages/Documents/Documents";
+import ShipmentDetails from "./pages/ShipmentDetails/ShipmentDetails";
 
 function ProtectedLayout() {
   return (
@@ -38,6 +39,10 @@ function App() {
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
+            <Route
+              path="/shipments/:id"
+              element={<ShipmentDetails />}
+            />
           </Route>
         </Route>
 
