@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   createShipment,
   deleteShipment,
   getShipments,
   updateShipment,
 } from "../../services/shipment.service";
+import Pagination from "../../components/Pagination/Pagination";
 import "./Shipments.css";
 import { useNavigate } from "react-router-dom";
 
@@ -34,28 +35,51 @@ function Shipments() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
 
+  const [filters, setFilters] = useState({
+    page: 1,
+    limit: 10,
+    status: "",
+    origin: "",
+    destination: "",
+    search: "",
+  });
+  const [pagination, setPagination] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    loadShipments();
-  }, []);
-
-  async function loadShipments() {
+  const loadShipments = useCallback(async (page = filters.page) => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await getShipments();
+      const response = await getShipments({
+        page: Number(page),
+        limit: Number(filters.limit),
+        status: filters.status || undefined,
+        origin: filters.origin || undefined,
+        destination: filters.destination || undefined,
+        search: filters.search || undefined,
+      });
 
       setShipments(response.data.data);
+      setPagination(response.data.pagination);
     } catch (err) {
       setError(getShipmentError(err, "Unable to load shipments."));
     } finally {
       setLoading(false);
     }
-  }
+  }, [filters]);
+
+  useEffect(() => {
+    async function fetchShipments() {
+      await loadShipments();
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchShipments();
+  }, [loadShipments]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -64,6 +88,21 @@ function Shipments() {
       ...current,
       [name]: value,
     }));
+  }
+
+  function handleFilterChange(event) {
+    const { name, value } = event.target;
+    const normalizedValue = name === "limit" ? Number(value) : value;
+
+    setFilters((current) => ({
+      ...current,
+      [name]: normalizedValue,
+      page: name === "limit" ? 1 : current.page,
+    }));
+  }
+
+  function handlePageChange(nextPage) {
+    setFilters((current) => ({ ...current, page: nextPage }));
   }
 
   function resetForm() {
@@ -265,7 +304,70 @@ function Shipments() {
 
         <div className="list-heading">
           <h2>All Shipments</h2>
-          <span>{shipments.length}</span>
+          <span>{pagination?.total ?? shipments.length}</span>
+        </div>
+
+        <div className="filter-bar">
+          <label>
+            Status
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+            >
+              <option value="">All</option>
+              <option value="Pending">Pending</option>
+              <option value="Loaded">Loaded</option>
+              <option value="InTransit">In Transit</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Delayed">Delayed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </label>
+
+          <label>
+            Origin
+            <input
+              name="origin"
+              value={filters.origin}
+              onChange={handleFilterChange}
+              placeholder="Origin"
+            />
+          </label>
+
+          <label>
+            Destination
+            <input
+              name="destination"
+              value={filters.destination}
+              onChange={handleFilterChange}
+              placeholder="Destination"
+            />
+          </label>
+
+          <label>
+            Search
+            <input
+              name="search"
+              value={filters.search}
+              onChange={handleFilterChange}
+              placeholder="Shipment #, customer, origin, destination"
+            />
+          </label>
+
+          <label>
+            Page size
+            <select
+              name="limit"
+              value={filters.limit}
+              onChange={handleFilterChange}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </label>
         </div>
 
         {loading ? (
@@ -273,59 +375,57 @@ function Shipments() {
         ) : shipments.length === 0 ? (
           <p>No shipments found.</p>
         ) : (
-          <div className="shipment-list">
+          <>
+            <div className="shipment-list">
+              {shipments.map((shipment) => (
+                <article
+                  className="shipment-row"
+                  key={shipment.id}
+                  onClick={() => navigate(`/shipments/${shipment.id}`)}
+                >
+                  <div>
+                    <h3>{shipment.shipmentNumber}</h3>
 
-            {shipments.map((shipment) => (
-              <article
-                className="shipment-row"
-                key={shipment.id}
-                onClick={() => navigate(`/shipments/${shipment.id}`)}
-              >
-                <div>
-                  <h3>{shipment.shipmentNumber}</h3>
+                    <p>
+                      {shipment.origin} → {shipment.destination}
+                    </p>
 
-                  <p>
-                    {shipment.origin} → {shipment.destination}
-                  </p>
+                    <p>
+                      Customer: {shipment.customerName}
+                    </p>
 
-                  <p>
-                    Customer: {shipment.customerName}
-                  </p>
+                    <p>
+                      Status: <strong>{shipment.status}</strong>
+                    </p>
+                  </div>
 
-                  <p>
-                    Status: <strong>{shipment.status}</strong>
-                  </p>
-                </div>
+                  <div className="row-actions">
+                    <button
+                      className="secondary-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(shipment);
+                      }}
+                    >
+                      Edit
+                    </button>
 
-                <div className="row-actions">
-
-                  <button
-                    className="secondary-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(shipment);
-                    }}
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    className="danger-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(shipment);
-                    }}
-                  >
-                    Delete
-                  </button>
-
-                </div>
-              </article>
-            ))}
-
-          </div>
+                    <button
+                      className="danger-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(shipment);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <Pagination pagination={pagination} onPageChange={handlePageChange} />
+          </>
         )}
-
       </section>
     </main>
   );

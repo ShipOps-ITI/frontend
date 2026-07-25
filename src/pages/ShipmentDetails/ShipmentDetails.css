@@ -177,6 +177,67 @@
   margin-bottom: 16px;
 }
 
+.cargo-filter-bar,
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+  align-items: end;
+}
+
+.cargo-filter-bar label,
+.filter-bar label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #344054;
+}
+
+.cargo-filter-bar input,
+.cargo-filter-bar select,
+.filter-bar input,
+.filter-bar select {
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 0.95rem;
+}
+
+.cargo-filter-bar input:focus,
+.cargo-filter-bar select:focus,
+.filter-bar input:focus,
+.filter-bar select:focus {
+  outline: 2px solid #73c0e6;
+  border-color: #146c94;
+}
+
+.no-results {
+  padding: 18px 0;
+  color: #475467;
+  font-weight: 500;
+}
+
+.cargo-filter-bar .filter-actions {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.cargo-filter-bar .clear-button {
+  background: #f2f4f7;
+  color: #344054;
+  border: 1px solid #d0d5dd;
+  min-height: 44px;
+  align-self: flex-end;
+}
+
+.cargo-filter-bar .clear-button:hover {
+  background: #e2e8f0;
+}
+
 .secondary-button,
 .danger-button {
   border: none;

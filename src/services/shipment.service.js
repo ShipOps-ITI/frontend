@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const shipmentAPI = axios.create({
-  baseURL: "http://localhost:5000/api/shipments",
+  baseURL: "http://localhost:5002/api/shipments",
 });
 
 shipmentAPI.interceptors.request.use((config) => {
@@ -14,7 +14,7 @@ shipmentAPI.interceptors.request.use((config) => {
   return config;
 });
 
-export const getShipments = () => shipmentAPI.get("/");
+export const getShipments = (params = {}) => shipmentAPI.get("/", { params });
 
 export const getShipment = (id) => shipmentAPI.get(`/${id}`);
 

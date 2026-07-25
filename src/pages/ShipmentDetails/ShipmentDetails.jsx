@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getShipment } from "../../services/shipment.service";
 import "./ShipmentDetails.css";
 import {
   createCargo,
   updateCargo,
-  deleteCargo
+  deleteCargo,
+  getCargo,
 } from "../../services/cargo.service";
+import Pagination from "../../components/Pagination/Pagination";
 
 
 function ShipmentDetails() {
@@ -18,6 +20,15 @@ function ShipmentDetails() {
 
   const [editingCargoId, setEditingCargoId] = useState(null);
   const [isCreatingCargo, setIsCreatingCargo] = useState(false);
+
+  const [cargoList, setCargoList] = useState([]);
+  const [cargoFilters, setCargoFilters] = useState({
+    page: 1,
+    limit: 10,
+    status: "",
+    search: "",
+  });
+  const [cargoPagination, setCargoPagination] = useState(null);
 
   const [cargoForm, setCargoForm] = useState({
     shipmentId: "",
@@ -33,35 +44,54 @@ function ShipmentDetails() {
 
 
   useEffect(() => {
-
     async function fetchShipment() {
-
       try {
-
         const response = await getShipment(id);
-
         setShipment(response.data.data);
-
-      } catch(error) {
-
+      } catch (error) {
         console.log(error);
-
         setError(
           error.response?.data?.message ||
           "Unable to load shipment details."
         );
-
       }
-
     }
 
-
     fetchShipment();
-
   }, [id]);
 
-  function handleEditCargo(cargo) {
+  const loadCargo = useCallback(async (page = cargoFilters.page) => {
+    try {
+      const response = await getCargo({
+        shipmentId: Number(id),
+        page: Number(page),
+        limit: Number(cargoFilters.limit),
+        status: cargoFilters.status || undefined,
+        search: cargoFilters.search || undefined,
+      });
 
+      setCargoList(response.data.data);
+      setCargoPagination(response.data.pagination);
+    } catch (error) {
+      console.log(error);
+      setError(
+        error.response?.data?.message ||
+        "Unable to load cargo list."
+      );
+    }
+  }, [cargoFilters, id]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchCargo() {
+      await loadCargo();
+    }
+
+    fetchCargo();
+  }, [id, loadCargo]);
+
+  function handleEditCargo(cargo) {
   setEditingCargoId(cargo.id);
   setIsCreatingCargo(false);
 
@@ -82,7 +112,7 @@ function handleAddCargo() {
   setIsCreatingCargo(true);
 
   setCargoForm({
-    shipmentId: shipment.id,
+    shipmentId: id,
     cargoName: "",
     cargoType: "",
     weight: "",
@@ -94,23 +124,14 @@ function handleAddCargo() {
 }
 
 async function handleDeleteCargo(id) {
-
   if (!window.confirm("Delete cargo?")) {
     return;
   }
 
   try {
-
     await deleteCargo(id);
-
-    const response = await getShipment(
-      shipment.id
-    );
-
-    setShipment(response.data.data);
-
+    await loadCargo();
   } catch (error) {
-
     setError(
       error.response?.data?.message ||
       "Unable to delete cargo."
@@ -119,13 +140,34 @@ async function handleDeleteCargo(id) {
 }
 
 function handleCargoChange(event) {
-
   const { name, value } = event.target;
 
   setCargoForm((current) => ({
     ...current,
     [name]: value
   }));
+}
+
+function handleCargoFilterChange(event) {
+  const { name, value } = event.target;
+  setCargoFilters((current) => ({
+    ...current,
+    [name]: name === "limit" ? Number(value) : value,
+    page: ["limit", "status", "search"].includes(name) ? 1 : current.page,
+  }));
+}
+
+function clearCargoFilters() {
+  setCargoFilters({
+    page: 1,
+    limit: 10,
+    status: "",
+    search: "",
+  });
+}
+
+function handleCargoPageChange(nextPage) {
+  setCargoFilters((current) => ({ ...current, page: nextPage }));
 }
 
 function resetCargoForm() {
@@ -142,7 +184,6 @@ function resetCargoForm() {
 }
 
 async function handleCargoUpdate(event) {
-
   event.preventDefault();
 
   try {
@@ -159,15 +200,11 @@ async function handleCargoUpdate(event) {
       await createCargo(payload);
     }
 
-    const response = await getShipment(shipment.id);
-
-    setShipment(response.data.data);
+    await loadCargo();
     setEditingCargoId(null);
     setIsCreatingCargo(false);
     resetCargoForm();
-
   } catch (error) {
-
     setError(
       error.response?.data?.message ||
       "Unable to update cargo."
@@ -190,7 +227,6 @@ async function handleCargoUpdate(event) {
 
 
   if (!shipment) {
-
     return (
       <main className="shipment-details-page">
         <p>
@@ -198,7 +234,6 @@ async function handleCargoUpdate(event) {
         </p>
       </main>
     );
-
   }
 
 
@@ -315,7 +350,7 @@ async function handleCargoUpdate(event) {
 
 
           <span>
-            {shipment.cargo?.length || 0}
+            {cargoPagination?.total ?? cargoList.length}
           </span>
 
           <button
@@ -331,173 +366,180 @@ async function handleCargoUpdate(event) {
 
 
 
-        {shipment.cargo?.length === 0 && !isCreatingCargo && (
+        <div className="cargo-filter-bar">
+          <label>
+            Status
+            <select
+              name="status"
+              value={cargoFilters.status}
+              onChange={handleCargoFilterChange}
+            >
+              <option value="">All</option>
+              <option value="Pending">Pending</option>
+              <option value="Loaded">Loaded</option>
+              <option value="InTransit">In Transit</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Damaged">Damaged</option>
+            </select>
+          </label>
 
-            <p>
-              No cargo found for this shipment.
-            </p>
+          <label>
+            Search
+            <input
+              name="search"
+              value={cargoFilters.search}
+              onChange={handleCargoFilterChange}
+              placeholder="Cargo name, type, container"
+            />
+          </label>
 
+          <div className="filter-actions">
+            <label>
+              Page size
+              <select
+                name="limit"
+                value={cargoFilters.limit}
+                onChange={handleCargoFilterChange}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              className="secondary-button clear-button"
+              onClick={clearCargoFilters}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        {cargoList.length === 0 && !isCreatingCargo && (
+          <p className="no-results">
+            No cargo found for this shipment.
+          </p>
         )}
 
         {(editingCargoId || isCreatingCargo) && (
+          <section className="shipment-details-card cargo-form-card">
+            <h2>{editingCargoId ? "Edit Cargo" : "Add Cargo"}</h2>
+            <form className="cargo-form" onSubmit={handleCargoUpdate}>
+              <input
+                name="cargoName"
+                value={cargoForm.cargoName}
+                onChange={handleCargoChange}
+                placeholder="Cargo name"
+              />
 
-    <section className="shipment-details-card">
+              <input
+                name="cargoType"
+                value={cargoForm.cargoType}
+                onChange={handleCargoChange}
+                placeholder="Cargo type"
+              />
 
-      <h2>{editingCargoId ? "Edit Cargo" : "Add Cargo"}</h2>
+              <input
+                type="number"
+                name="weight"
+                value={cargoForm.weight}
+                onChange={handleCargoChange}
+                placeholder="Weight"
+              />
 
-      <form
-        className="cargo-form"
-        onSubmit={handleCargoUpdate}
-      >
+              <input
+                type="number"
+                name="quantity"
+                value={cargoForm.quantity}
+                onChange={handleCargoChange}
+                placeholder="Quantity"
+              />
 
-        <input
-          name="cargoName"
-          value={cargoForm.cargoName}
-          onChange={handleCargoChange}
-          placeholder="Cargo name"
-        />
+              <input
+                name="containerNumber"
+                value={cargoForm.containerNumber}
+                onChange={handleCargoChange}
+                placeholder="Container number"
+              />
 
-        <input
-          name="cargoType"
-          value={cargoForm.cargoType}
-          onChange={handleCargoChange}
-          placeholder="Cargo type"
-        />
+              <textarea
+                name="description"
+                value={cargoForm.description}
+                onChange={handleCargoChange}
+                placeholder="Description"
+              />
 
-        <input
-          type="number"
-          name="weight"
-          value={cargoForm.weight}
-          onChange={handleCargoChange}
-          placeholder="Weight"
-        />
+              <select
+                name="status"
+                value={cargoForm.status}
+                onChange={handleCargoChange}
+              >
+                <option value="" disabled>
+                  Select status
+                </option>
+                <option value="Pending">Pending</option>
+                <option value="Loaded">Loaded</option>
+                <option value="InTransit">In Transit</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Damaged">Damaged</option>
+              </select>
 
-        <input
-          type="number"
-          name="quantity"
-          value={cargoForm.quantity}
-          onChange={handleCargoChange}
-          placeholder="Quantity"
-        />
+              <div className="form-actions">
+                <button type="submit">Save</button>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => {
+                    setEditingCargoId(null);
+                    setIsCreatingCargo(false);
+                    resetCargoForm();
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
 
-        <input
-          name="containerNumber"
-          value={cargoForm.containerNumber}
-          onChange={handleCargoChange}
-          placeholder="Container number"
-        />
-
-        <textarea
-          name="description"
-          value={cargoForm.description}
-          onChange={handleCargoChange}
-          placeholder="Description"
-        />
-
-        <select
-          name="status"
-          value={cargoForm.status}
-          onChange={handleCargoChange}
-        >
-          <option value="" disabled>
-            Select status
-          </option>
-          <option value="Pending">Pending</option>
-          <option value="Loaded">Loaded</option>
-          <option value="InTransit">In Transit</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Damaged">Damaged</option>
-        </select>
-
-        <button type="submit">
-          Save
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setEditingCargoId(null);
-            setIsCreatingCargo(false);
-            resetCargoForm();
-          }}
-        >
-          Cancel
-        </button>
-
-      </form>
-
-    </section>
-
-  )}
-
-        {shipment.cargo?.length > 0 && (
-
+        {cargoList.length > 0 && (
+          <>
             <div className="cargo-list">
+              {cargoList.map((cargo) => (
+                <article className="cargo-card" key={cargo.id}>
+                  <div className="cargo-actions">
+                    <button
+                      className="secondary-button"
+                      onClick={() => handleEditCargo(cargo)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="danger-button"
+                      onClick={() => handleDeleteCargo(cargo.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
 
-              {shipment.cargo.map((cargo) => (
-
-                  <article
-                    className="cargo-card"
-                    key={cargo.id}
-                  >
-                    <div className="cargo-actions">
-                      <button
-                        className="secondary-button"
-                        onClick={() => handleEditCargo(cargo)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="danger-button"
-                        onClick={() => handleDeleteCargo(cargo.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-
-                    <h3>
-                      {cargo.cargoName}
-                    </h3>
-
-                    <p>
-                      Type: {cargo.cargoType}
-                    </p>
-
-                    <p>
-                      Weight: {cargo.weight}
-                    </p>
-
-                    <p>
-                      Quantity: {cargo.quantity}
-                    </p>
-
-                    <p>
-                      Container Number: {cargo.containerNumber}
-                    </p>
-
-                    <p>
-                      Description: {cargo.description}
-                    </p>
-
-                    <p>
-                      Status:
-                      <strong>
-                        {' '}{cargo.status}
-                      </strong>
-                    </p>
-
-                    <p className="cargo-date">
-                      Created:
-                      {' '}
-                      {new Date(cargo.createdAt).toLocaleString()}
-                    </p>
-
-                  </article>
-
+                  <h3>{cargo.cargoName}</h3>
+                  <p>Type: {cargo.cargoType}</p>
+                  <p>Weight: {cargo.weight}</p>
+                  <p>Quantity: {cargo.quantity}</p>
+                  <p>Container Number: {cargo.containerNumber}</p>
+                  <p>Description: {cargo.description}</p>
+                  <p>Status: <strong>{cargo.status}</strong></p>
+                  <p className="cargo-date">
+                    Created: {new Date(cargo.createdAt).toLocaleString()}
+                  </p>
+                </article>
               ))}
-
             </div>
-
+            <Pagination pagination={cargoPagination} onPageChange={handleCargoPageChange} />
+          </>
         )}
 
       </section>
