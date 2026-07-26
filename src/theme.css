@@ -1,0 +1,93 @@
+/* Shared ShipOps visual system. This file deliberately sits after feature CSS
+   so existing pages gain a consistent darker, maritime operations theme. */
+:root {
+  --ink: #112a3f;
+  --muted: #5d7184;
+  --navy: #102c43;
+  --navy-strong: #0a2134;
+  --sea: #0d718d;
+  --sea-strong: #075b75;
+  --surface: #ffffff;
+  --surface-soft: #f7fafc;
+  --canvas: #e9f0f6;
+  --line: #d5e1eb;
+  --danger: #b42318;
+}
+
+body { color: var(--ink) !important; background: var(--canvas) !important; }
+
+.navbar { background: var(--navy) !important; border-color: #25475d !important; }
+.brand { color: #d4f2fb !important; letter-spacing: .02em; }
+.nav-links a { color: #c7d8e5 !important; }
+.nav-links a:hover, .nav-links a.active { color: #fff !important; background: #1e5068 !important; }
+.user-name { color: #d7e6f0 !important; }
+.user-role { color: #8fb4c7 !important; }
+.logout-btn { background: #1d617f !important; box-shadow: none !important; }
+.logout-btn:hover { background: #287a9c !important; }
+
+.companies-page, .fleets-page, .ships-page, .shipments-page, .ports-page,
+.documents-page, .users-page, .shipment-details-page, .dashboard-page {
+  width: min(100% - 40px, 1180px) !important;
+}
+
+.companies-header h1, .fleets-header h1, .ships-header h1, .shipments-header h1,
+.ports-header h1, .documents-header h1, .users-header h1, .shipment-details-header h1 {
+  color: var(--navy) !important;
+  letter-spacing: -.03em;
+}
+
+.company-form-card, .company-list-card, .fleet-form-card, .fleet-list-card,
+.ship-form-card, .ship-list-card, .shipment-form-card, .shipment-list-card,
+.port-form-card, .port-list-card, .document-form-card, .document-list-card,
+.users-card, .shipment-details-card, .cargo-card {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 24px rgb(20 48 70 / 7%) !important;
+}
+
+input, select, textarea {
+  color: var(--ink) !important;
+  background: #fbfdff !important;
+  border-color: #c8d7e4 !important;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+input:hover, select:hover, textarea:hover { border-color: #99b6c8 !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--sea) !important;
+  box-shadow: 0 0 0 3px rgb(13 113 141 / 14%) !important;
+}
+input:disabled, select:disabled, textarea:disabled { background: #edf3f7 !important; color: #607589 !important; }
+
+main button:not(.secondary-button):not(.danger-button):not(.text-button):not(.clear-button):not(.password-toggle),
+.auth-form button:not(.password-toggle) {
+  background: var(--sea) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 5px rgb(8 61 83 / 16%);
+}
+main button:not(.secondary-button):not(.danger-button):not(.text-button):not(.clear-button):not(.password-toggle):hover,
+.auth-form button:not(.password-toggle):hover { background: var(--sea-strong) !important; }
+.secondary-button, .clear-button { background: #e9f0f5 !important; color: #25465d !important; border: 1px solid #d3e0e9 !important; }
+.secondary-button:hover, .clear-button:hover { background: #dce8f0 !important; }
+.danger-button { background: var(--danger) !important; }
+
+.company-row, .fleet-row, .ship-row, .shipment-row, .port-row, .document-row, .user-row {
+  border-color: #e1eaf1 !important;
+  transition: background .16s ease, transform .16s ease;
+}
+.company-row:hover, .fleet-row:hover, .ship-row:hover, .shipment-row:hover,
+.port-row:hover, .document-row:hover, .user-row:hover { background: #f3f8fb !important; }
+
+.list-heading, .company-list-title { gap: 12px; }
+.list-heading span, .company-list-title + span { background: #ddecf4 !important; color: #17536d !important; }
+.error-message { background: #fff2f1 !important; border-color: #fecfca !important; color: #a61b13 !important; }
+.success-message { background: #ecfdf3 !important; border: 1px solid #abefc6; color: #067647 !important; }
+
+.auth-page:not(.auth-with-image) { background: radial-gradient(circle at top left, #274f67, #102c43 58%, #091f30) !important; }
+
+@media (max-width: 640px) {
+  .companies-page, .fleets-page, .ships-page, .shipments-page, .ports-page,
+  .documents-page, .users-page, .shipment-details-page, .dashboard-page { width: min(100% - 24px, 1180px) !important; }
+  .row-actions { width: 100%; }
+  .row-actions button { flex: 1; }
+}

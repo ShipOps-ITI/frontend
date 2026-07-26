@@ -168,6 +168,16 @@ button:disabled {
   align-items: center;
 }
 
+.company-list-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.company-list-title h2 {
+  margin: 0;
+}
+
 .list-heading span {
   background: #e0f2fe;
   color: #075985;

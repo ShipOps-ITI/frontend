@@ -27,13 +27,18 @@ function Navbar() {
           <NavLink to="/ships">Ships</NavLink>
           <NavLink to="/shipments">Shipments</NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
+          {["ADMIN", "FLEET_MANAGER"].includes(user?.role) && <NavLink to="/ports">Ports</NavLink>}
           <NavLink to="/documents">Documents</NavLink>
+          {user?.role === "ADMIN" && <NavLink to="/users">Users</NavLink>}
 
         </div>
         <div className="nav-user">
           {user && (
             <>
-              <span className="user-name">{user.name}</span>
+              <div className="user-context">
+                <span className="user-name">{user.name}</span>
+                <span className="user-role">{user.role.replaceAll("_", " ")}</span>
+              </div>
               <button 
                 className="logout-btn" 
                 onClick={handleLogout}

@@ -9,6 +9,8 @@
 .ship-form input:focus, .ship-form select:focus { outline: 2px solid #73c0e6; border-color: #146c94; }
 .ship-form-actions { grid-column: 1 / -1; }
 .ship-list { border-top: 1px solid #eaecf0; }
+.ship-list-title { display: flex; align-items: center; gap: 10px; }
+.ship-list-title h2 { margin: 0; }
 .ship-row { display: flex; justify-content: space-between; gap: 20px; padding: 18px 0; border-bottom: 1px solid #eaecf0; }
 .ship-row h3 { margin-bottom: 6px; }
 .ship-row p { margin-bottom: 4px; }

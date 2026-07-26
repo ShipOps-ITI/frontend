@@ -73,6 +73,9 @@
   border-top: 1px solid #eaecf0;
 }
 
+.shipment-list-title { display: flex; align-items: center; gap: 10px; }
+.shipment-list-title h2 { margin: 0; }
+
 .shipment-row {
   display: flex;
   justify-content: space-between;

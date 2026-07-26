@@ -72,6 +72,14 @@
   border-top: 1px solid #eaecf0;
 }
 
+.fleet-list-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fleet-list-title h2 { margin: 0; }
+
 .fleet-row {
   display: flex;
   justify-content: space-between;
