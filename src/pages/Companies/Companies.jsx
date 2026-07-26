@@ -7,6 +7,7 @@ import {
 } from "../../services/company.service";
 import Pagination from "../../components/Pagination/Pagination";
 import { countries } from "../../constants/countries";
+import { getUser } from "../../services/auth.service";
 import "./Companies.css";
 
 const emptyForm = {
@@ -59,6 +60,8 @@ function getServerFieldErrors(requestError) {
 }
 
 function Companies() {
+  const user = getUser();
+  const isAdmin = user?.role === "ADMIN";
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -67,6 +70,7 @@ function Companies() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     loadCompanies();
@@ -96,6 +100,7 @@ function Companies() {
     setForm(emptyForm);
     setEditingId(null);
     setFieldErrors({});
+    setShowForm(false);
   }
 
   async function handleSubmit(event) {
@@ -152,6 +157,7 @@ function Companies() {
     setEditingId(company.id);
     setError("");
     setFieldErrors({});
+    setShowForm(true);
   }
 
   async function handleDelete(company) {
@@ -189,7 +195,7 @@ function Companies() {
         </div>
       </section>
 
-      <section className="company-form-card">
+      {isAdmin && showForm && <section className="company-form-card">
         <h2>{editingId ? "Edit company" : "Add company"}</h2>
 
         <form onSubmit={handleSubmit} className="company-form" noValidate>
@@ -262,14 +268,19 @@ function Companies() {
             )}
           </div>
         </form>
-      </section>
+      </section>}
 
       {error && <p className="error-message">{error}</p>}
 
       <section className="company-list-card">
         <div className="list-heading">
-          <h2>All companies</h2>
-          <span>{pagination?.total || 0}</span>
+          <div className="company-list-title">
+            <h2>All companies</h2>
+            <span>{pagination?.total || 0}</span>
+          </div>
+          {isAdmin && <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>
+            Add new company
+          </button>}
         </div>
 
         {loading ? (
@@ -285,14 +296,14 @@ function Companies() {
                   <p>{company.country} · {company.contactEmail}</p>
                   {company.phone && <p>{company.phone}</p>}
                 </div>
-                <div className="row-actions">
+                {isAdmin && <div className="row-actions">
                   <button type="button" className="secondary-button" onClick={() => handleEdit(company)}>
                     Edit
                   </button>
                   <button type="button" className="danger-button" onClick={() => handleDelete(company)}>
                     Delete
                   </button>
-                </div>
+                </div>}
               </article>
             ))}
           </div>

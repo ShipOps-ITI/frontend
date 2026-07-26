@@ -6,15 +6,20 @@ import {
   updateShipment,
 } from "../../services/shipment.service";
 import Pagination from "../../components/Pagination/Pagination";
+import { getUser } from "../../services/auth.service";
+import { getCompanies } from "../../services/company.service";
+import { getShips, getShipsByCompany } from "../../services/ship.service";
+import { getPorts } from "../../services/port.service";
 import "./Shipments.css";
 import { useNavigate } from "react-router-dom";
 
 const emptyForm = {
+  companyId: "",
   shipmentNumber: "",
   shipId: "",
   customerName: "",
-  origin: "",
-  destination: "",
+  originPortId: "",
+  destinationPortId: "",
   departureDate: "",
   arrivalDate: "",
   status: "Pending",
@@ -31,7 +36,15 @@ function getShipmentError(error, fallbackMessage) {
 
 function Shipments() {
   const navigate = useNavigate();
+  const user = getUser();
+  const isAdmin = user?.role === "ADMIN";
   const [shipments, setShipments] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [ships, setShips] = useState([]);
+  const [originPorts, setOriginPorts] = useState([]);
+  const [destinationPorts, setDestinationPorts] = useState([]);
+  const [originSearch, setOriginSearch] = useState("");
+  const [destinationSearch, setDestinationSearch] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
 
@@ -48,6 +61,7 @@ function Shipments() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const loadShipments = useCallback(async (page = filters.page) => {
     try {
@@ -81,6 +95,38 @@ function Shipments() {
     fetchShipments();
   }, [loadShipments]);
 
+  useEffect(() => {
+    async function loadReferences() {
+      try {
+        const [companyResponse, shipResponse] = await Promise.all([
+          getCompanies(1, 100),
+          getShips(1, 100),
+        ]);
+        setCompanies(companyResponse.data.data);
+        setShips(shipResponse.data.data);
+      } catch (requestError) {
+        setError(getShipmentError(requestError, "Unable to load shipment reference data."));
+      }
+    }
+    loadReferences();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (originSearch.trim().length < 2) return setOriginPorts([]);
+      try { setOriginPorts((await getPorts(1, 25, originSearch)).data.data); } catch { setOriginPorts([]); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [originSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (destinationSearch.trim().length < 2) return setDestinationPorts([]);
+      try { setDestinationPorts((await getPorts(1, 25, destinationSearch)).data.data); } catch { setDestinationPorts([]); }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [destinationSearch]);
+
   function handleChange(event) {
     const { name, value } = event.target;
 
@@ -88,6 +134,17 @@ function Shipments() {
       ...current,
       [name]: value,
     }));
+  }
+
+  async function handleCompanyChange(event) {
+    handleChange(event);
+    try {
+      const response = isAdmin ? await getShipsByCompany(event.target.value) : await getShips();
+      setShips(response.data.data);
+      setForm((current) => ({ ...current, shipId: "" }));
+    } catch (requestError) {
+      setError(getShipmentError(requestError, "Unable to load company ships."));
+    }
   }
 
   function handleFilterChange(event) {
@@ -108,6 +165,9 @@ function Shipments() {
   function resetForm() {
     setForm(emptyForm);
     setEditingId(null);
+    setOriginSearch("");
+    setDestinationSearch("");
+    setShowForm(false);
   }
 
   async function handleSubmit(event) {
@@ -117,9 +177,13 @@ function Shipments() {
       setSubmitting(true);
       setError("");
 
+      const { companyId, ...shipmentForm } = form;
       const payload = {
-        ...form,
+        ...shipmentForm,
+        ...(isAdmin ? { companyId: Number(companyId) } : {}),
         shipId: Number(form.shipId),
+        originPortId: Number(form.originPortId),
+        destinationPortId: Number(form.destinationPortId),
       };
 
       if (editingId) {
@@ -141,17 +205,22 @@ function Shipments() {
     setEditingId(shipment.id);
 
     setForm({
+      companyId: shipment.companyId || "",
       shipmentNumber: shipment.shipmentNumber,
       shipId: shipment.shipId,
       customerName: shipment.customerName,
-      origin: shipment.origin,
-      destination: shipment.destination,
+      originPortId: shipment.originPortId || "",
+      destinationPortId: shipment.destinationPortId || "",
       departureDate: shipment.departureDate.slice(0, 10),
       arrivalDate: shipment.arrivalDate.slice(0, 10),
       status: shipment.status,
     });
 
+    setOriginSearch(shipment.origin);
+    setDestinationSearch(shipment.destination);
+
     setError("");
+    setShowForm(true);
   }
 
   async function handleDelete(shipment) {
@@ -181,7 +250,7 @@ function Shipments() {
         </div>
       </section>
 
-      <section className="shipment-form-card">
+      {showForm && <section className="shipment-form-card">
         <h2>{editingId ? "Edit Shipment" : "Create Shipment"}</h2>
 
         <form onSubmit={handleSubmit} className="shipment-form">
@@ -196,15 +265,20 @@ function Shipments() {
             />
           </label>
 
+          {isAdmin && <label>
+            Company
+            <select name="companyId" value={form.companyId} onChange={handleCompanyChange} required>
+              <option value="">Select a company</option>
+              {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+            </select>
+          </label>}
+
           <label>
-            Ship ID
-            <input
-              type="number"
-              name="shipId"
-              value={form.shipId}
-              onChange={handleChange}
-              required
-            />
+            Ship
+            <select name="shipId" value={form.shipId} onChange={handleChange} required>
+              <option value="">Select a ship</option>
+              {ships.map((ship) => <option key={ship.id} value={ship.id}>{ship.name}</option>)}
+            </select>
           </label>
 
           <label>
@@ -218,23 +292,29 @@ function Shipments() {
           </label>
 
           <label>
-            Origin
-            <input
-              name="origin"
-              value={form.origin}
-              onChange={handleChange}
-              required
-            />
+            Search origin port
+            <input value={originSearch} onChange={(event) => setOriginSearch(event.target.value)} placeholder="Type at least 2 characters" />
+          </label>
+          <label>
+            Origin port
+            <select name="originPortId" value={form.originPortId} onChange={handleChange} required>
+              <option value="">Select an origin port</option>
+              {form.originPortId && !originPorts.some((port) => port.id === Number(form.originPortId)) && <option value={form.originPortId}>{originSearch || "Current origin"}</option>}
+              {originPorts.map((port) => <option key={port.id} value={port.id}>{port.name}, {port.country} {port.unLocode ? `(${port.unLocode})` : ""}</option>)}
+            </select>
           </label>
 
           <label>
-            Destination
-            <input
-              name="destination"
-              value={form.destination}
-              onChange={handleChange}
-              required
-            />
+            Search destination port
+            <input value={destinationSearch} onChange={(event) => setDestinationSearch(event.target.value)} placeholder="Type at least 2 characters" />
+          </label>
+          <label>
+            Destination port
+            <select name="destinationPortId" value={form.destinationPortId} onChange={handleChange} required>
+              <option value="">Select a destination port</option>
+              {form.destinationPortId && !destinationPorts.some((port) => port.id === Number(form.destinationPortId)) && <option value={form.destinationPortId}>{destinationSearch || "Current destination"}</option>}
+              {destinationPorts.map((port) => <option key={port.id} value={port.id}>{port.name}, {port.country} {port.unLocode ? `(${port.unLocode})` : ""}</option>)}
+            </select>
           </label>
 
           <label>
@@ -296,15 +376,18 @@ function Shipments() {
           </div>
 
         </form>
-      </section>
+      </section>}
 
       {error && <p className="error-message">{error}</p>}
 
       <section className="shipment-list-card">
 
         <div className="list-heading">
-          <h2>All Shipments</h2>
-          <span>{pagination?.total ?? shipments.length}</span>
+          <div className="shipment-list-title">
+            <h2>All Shipments</h2>
+            <span>{pagination?.total ?? shipments.length}</span>
+          </div>
+          <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new shipment</button>
         </div>
 
         <div className="filter-bar">

@@ -23,6 +23,7 @@ function getErrorMessage(requestError, fallbackMessage) {
 
 function Fleets() {
   const loggedInUser = getUser();
+  const isAdmin = loggedInUser?.role === "ADMIN";
   const [fleets, setFleets] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -31,6 +32,7 @@ function Fleets() {
   const [pagination, setPagination] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     loadPageData();
@@ -59,6 +61,7 @@ function Fleets() {
   function resetForm() {
     setForm(emptyForm);
     setEditingId(null);
+    setShowForm(false);
   }
 
   async function handleSubmit(event) {
@@ -68,8 +71,8 @@ function Fleets() {
       setSubmitting(true);
       setError("");
 
-      if (!loggedInUser?.id) {
-        setError("Your login session is missing user information. Please log in again.");
+      if (!isAdmin && !loggedInUser?.companyId) {
+        setError("Your account is not assigned to a company. Ask an administrator to assign one, then log in again.");
         return;
       }
 
@@ -80,10 +83,8 @@ function Fleets() {
         });
       } else {
         await createFleet({
-          companyId: Number(form.companyId),
+          ...(isAdmin ? { companyId: Number(form.companyId) } : {}),
           name: form.name,
-          managedByUserId: loggedInUser.id,
-          createdByUserId: loggedInUser.id,
           description: form.description || undefined,
         });
       }
@@ -105,11 +106,17 @@ function Fleets() {
     });
     setEditingId(fleet.id);
     setError("");
+    setShowForm(true);
   }
 
   async function handleDelete(fleet) {
     const shipCount = fleet._count?.ships || 0;
-    if (!window.confirm(`Delete ${fleet.name}? Its ${shipCount} ship(s) will remain but become unassigned from this fleet.`)) {
+    if (shipCount > 0) {
+      setError(`Move or delete the ${shipCount} ship(s) in ${fleet.name} before deleting this fleet.`);
+      return;
+    }
+
+    if (!window.confirm(`Delete ${fleet.name}? This cannot be undone.`)) {
       return;
     }
 
@@ -137,22 +144,29 @@ function Fleets() {
         </div>
       </section>
 
-      <section className="fleet-form-card">
+      {showForm && <section className="fleet-form-card">
         <h2>{editingId ? "Edit fleet" : "Add fleet"}</h2>
         {!editingId && companies.length === 0 && !loading && (
           <p className="form-note">Create a company before adding a fleet.</p>
         )}
 
         <form onSubmit={handleSubmit} className="fleet-form">
-          <label>
-            Company
-            <select name="companyId" value={form.companyId} onChange={handleChange} disabled={Boolean(editingId)} required>
-              <option value="">Select a company</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>{company.name}</option>
-              ))}
-            </select>
-          </label>
+          {isAdmin ? (
+            <label>
+              Company
+              <select name="companyId" value={form.companyId} onChange={handleChange} disabled={Boolean(editingId)} required>
+                <option value="">Select a company</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>{company.name}</option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <label>
+              Company
+              <input value={companies[0]?.name || "Your assigned company"} disabled />
+            </label>
+          )}
 
           <label>
             Fleet name
@@ -165,20 +179,23 @@ function Fleets() {
           </label>
 
           <div className="form-actions full-width">
-            <button type="submit" disabled={submitting || (!editingId && companies.length === 0)}>
+            <button type="submit" disabled={submitting || (isAdmin ? !form.companyId : !loggedInUser?.companyId)}>
               {submitting ? "Saving..." : editingId ? "Save changes" : "Add fleet"}
             </button>
             {editingId && <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>}
           </div>
         </form>
-      </section>
+      </section>}
 
       {error && <p className="error-message">{error}</p>}
 
       <section className="fleet-list-card">
         <div className="list-heading">
-          <h2>All fleets</h2>
-          <span>{pagination?.total || 0}</span>
+          <div className="fleet-list-title">
+            <h2>All fleets</h2>
+            <span>{pagination?.total || 0}</span>
+          </div>
+          <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new fleet</button>
         </div>
 
         {loading ? <p>Loading fleets...</p> : fleets.length === 0 ? <p>No fleets yet.</p> : (

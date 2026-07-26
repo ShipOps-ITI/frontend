@@ -4,6 +4,7 @@ import ShipMap from "../../components/ShipMap/ShipMap";
 import { countries, getCountryFlagImageUrl } from "../../constants/countries";
 import { getCompanies } from "../../services/company.service";
 import { getFleetsByCompany } from "../../services/fleet.service";
+import { getUser } from "../../services/auth.service";
 import { createShip, deleteShip, getShips, updateShip } from "../../services/ship.service";
 import "./Ships.css";
 
@@ -58,6 +59,8 @@ const formatAisUpdate = (value) => {
 };
 
 function Ships() {
+  const loggedInUser = getUser();
+  const isAdmin = loggedInUser?.role === "ADMIN";
   const [ships, setShips] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [fleets, setFleets] = useState([]);
@@ -67,6 +70,7 @@ function Ships() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const currentPageRef = useRef(1);
 
   useEffect(() => {
@@ -81,8 +85,10 @@ function Ships() {
   }, []);
 
   useEffect(() => {
-    if (form.companyId) loadFleets(form.companyId);
-  }, [form.companyId]);
+    const companyId = Number(isAdmin ? form.companyId : loggedInUser?.companyId);
+    setFleets([]);
+    if (Number.isInteger(companyId) && companyId > 0) loadFleets(companyId);
+  }, [form.companyId, isAdmin, loggedInUser?.companyId]);
 
   async function loadShips(page = 1, showLoading = true) {
     try {
@@ -121,7 +127,6 @@ function Ships() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-    if (name === "companyId") setFleets([]);
     setForm((currentForm) => ({
       ...currentForm,
       [name]: value,
@@ -133,13 +138,15 @@ function Ships() {
     setForm(emptyForm);
     setFleets([]);
     setEditingId(null);
+    setShowForm(false);
   }
 
   function getPayload() {
+    const { companyId, ...shipForm } = form;
     return {
-      ...form,
-      companyId: Number(form.companyId),
-      fleetId: form.fleetId ? Number(form.fleetId) : null,
+      ...shipForm,
+      ...(isAdmin ? { companyId: Number(companyId) } : {}),
+      fleetId: Number(form.fleetId),
       imoNumber: form.imoNumber || null,
       mmsiNumber: form.mmsiNumber || null,
       shipType: form.shipType || null,
@@ -167,8 +174,9 @@ function Ships() {
 
       resetForm();
       await loadShips(editingId ? pagination?.page : 1);
-    } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to save ship.");
+      } catch (requestError) {
+      const firstValidationError = requestError.response?.data?.errors?.[0]?.message;
+      setError(firstValidationError || requestError.response?.data?.message || "Unable to save ship.");
     } finally {
       setSubmitting(false);
     }
@@ -192,6 +200,7 @@ function Ships() {
     });
     setEditingId(ship.id);
     setError("");
+    setShowForm(true);
   }
 
   async function handleDelete(ship) {
@@ -217,20 +226,27 @@ function Ships() {
         <p>Manage vessel records, fleet assignments, and operating status.</p>
       </section>
 
-      <section className="ship-form-card">
+      {showForm && <section className="ship-form-card">
         <h2>{editingId ? "Edit ship" : "Add ship"}</h2>
         <form className="ship-form" onSubmit={handleSubmit}>
+          {isAdmin ? (
+            <label>
+              Company
+              <select name="companyId" value={form.companyId} onChange={handleChange} disabled={Boolean(editingId)} required>
+                <option value="">Select a company</option>
+                {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+              </select>
+            </label>
+          ) : (
+            <label>
+              Company
+              <input value={companies[0]?.name || "Your assigned company"} disabled />
+            </label>
+          )}
           <label>
-            Company
-            <select name="companyId" value={form.companyId} onChange={handleChange} required>
-              <option value="">Select a company</option>
-              {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
-            </select>
-          </label>
-          <label>
-            Fleet <span>(optional)</span>
-            <select name="fleetId" value={form.fleetId} onChange={handleChange} disabled={!form.companyId}>
-              <option value="">No fleet assigned</option>
+            Fleet
+            <select name="fleetId" value={form.fleetId} onChange={handleChange} disabled={isAdmin && !form.companyId} required>
+              <option value="">Select a fleet</option>
               {fleets.map((fleet) => <option key={fleet.id} value={fleet.id}>{fleet.name}</option>)}
             </select>
           </label>
@@ -272,18 +288,21 @@ function Ships() {
           <label>Length (m) <span>(optional)</span><input name="lengthMeters" type="number" min="0" step="any" value={form.lengthMeters} onChange={handleChange} /></label>
           <label>Width (m) <span>(optional)</span><input name="widthMeters" type="number" min="0" step="any" value={form.widthMeters} onChange={handleChange} /></label>
           <div className="form-actions ship-form-actions">
-            <button type="submit" disabled={submitting || companies.length === 0}>{submitting ? "Saving..." : editingId ? "Save changes" : "Add ship"}</button>
+            <button type="submit" disabled={submitting || companies.length === 0 || fleets.length === 0 || (isAdmin && !form.companyId)}>{submitting ? "Saving..." : editingId ? "Save changes" : "Add ship"}</button>
             {editingId && <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>}
           </div>
         </form>
-      </section>
+      </section>}
 
       {error && <p className="error-message">{error}</p>}
 
       <ShipMap ships={ships} />
 
       <section className="ship-list-card">
-        <div className="list-heading"><h2>All ships</h2><span>{pagination?.total || 0}</span></div>
+        <div className="list-heading">
+          <div className="ship-list-title"><h2>All ships</h2><span>{pagination?.total || 0}</span></div>
+          <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new ship</button>
+        </div>
         <p className="tracking-note">Location data refreshes every 30 seconds.</p>
         {loading ? <p>Loading ships...</p> : ships.length === 0 ? <p>No ships yet.</p> : (
           <div className="ship-list">
