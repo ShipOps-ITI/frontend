@@ -53,63 +53,63 @@ function Register() {
         </div>
       </aside>
       <main className="auth-content">
-      <div className="auth-card auth-card-register">
-        <p className="auth-kicker">Get started</p>
-        <h1>Create your account</h1>
-        <p className="auth-subtitle">Create an account to start using ShipOps.</p>
+        <div className="auth-card auth-card-register">
+          <p className="auth-kicker">Get started</p>
+          <h1>Create your account</h1>
+          <p className="auth-subtitle">Create an account to start using ShipOps.</p>
 
-        <form onSubmit={handleSubmit} className="auth-form" noValidate>
-          <label>
-            Full name
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? "name-error" : undefined}
-            />
-            {errors.name && <span id="name-error" className="field-error">{errors.name}</span>}
-          </label>
-
-          <label>
-            Email
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "email-error" : undefined}
-            />
-            {errors.email && <span id="email-error" className="field-error">{errors.email}</span>}
-          </label>
-
-          <label>
-            Password
-            <span className="password-field">
+          <form onSubmit={handleSubmit} className="auth-form" noValidate>
+            <label>
+              Full name
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                type="text"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
-                aria-invalid={Boolean(errors.password)}
-                aria-describedby={errors.password ? "password-error" : undefined}
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? "name-error" : undefined}
               />
-              <button type="button" className="password-toggle" onClick={() => setShowPassword((visible) => !visible)}>
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </span>
-            {errors.password && <span id="password-error" className="field-error">{errors.password}</span>}
-          </label>
+              {errors.name && <span id="name-error" className="field-error">{errors.name}</span>}
+            </label>
 
-          <button type="submit">Create account</button>
-        </form>
+            <label>
+              Email
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? "email-error" : undefined}
+              />
+              {errors.email && <span id="email-error" className="field-error">{errors.email}</span>}
+            </label>
 
-        {message && <p className="form-message">{message}</p>}
+            <label>
+              Password
+              <span className="password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.password)}
+                  aria-describedby={errors.password ? "password-error" : undefined}
+                />
+                <button type="button" className="password-toggle" onClick={() => setShowPassword((visible) => !visible)}>
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </span>
+              {errors.password && <span id="password-error" className="field-error">{errors.password}</span>}
+            </label>
 
-        <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
-      </div>
+            <button type="submit">Create account</button>
+          </form>
+
+          {message && <p className="form-message">{message}</p>}
+
+          <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
+        </div>
       </main>
     </div>
   );
