@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getUser, getUsers, createUser, updateUserRole, deleteUser } from "../../services/admin.service";
+import { getUsers, createUser, updateUserRole, deleteUser } from "../../services/admin.service";
+import { getUser } from "../../services/auth.service";
 import "./AdminDashboard.css";
 
 const ROLES = ["ADMIN", "FLEET_MANAGER", "CUSTOMER", "CAPTAIN", "PORT_OPERATOR"];
