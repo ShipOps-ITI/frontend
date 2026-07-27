@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUsers, createUser, updateUserRole } from "../../services/admin.service";
+import { getUser, getUsers, createUser, updateUserRole, deleteUser } from "../../services/admin.service";
 import "./AdminDashboard.css";
 
 const ROLES = ["ADMIN", "FLEET_MANAGER", "CUSTOMER", "CAPTAIN", "PORT_OPERATOR"];
@@ -15,6 +15,7 @@ function AdminDashboard() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const currentUser = getUser();
 
   useEffect(() => {
     loadUsers();
@@ -25,7 +26,6 @@ function AdminDashboard() {
       setLoading(true);
       setPageError("");
       const data = await getUsers();
-      // API may return array directly or wrapped
       setUsers(Array.isArray(data) ? data : data.data ?? []);
     } catch (err) {
       setPageError(err.response?.data?.message || "Unable to load users.");
@@ -46,10 +46,23 @@ function AdminDashboard() {
         ...prev,
         [userId]: err.response?.data?.message || "Role update failed.",
       }));
-      // Revert select to previous value
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: prevRole } : u))
       );
+    }
+  }
+
+  async function handleDeleteUser(userId) {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    setRowErrors((prev) => ({ ...prev, [userId]: "" }));
+    try {
+      await deleteUser(userId);
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (err) {
+      setRowErrors((prev) => ({
+        ...prev,
+        [userId]: err.response?.data?.message || "Delete failed.",
+      }));
     }
   }
 
@@ -118,6 +131,7 @@ function AdminDashboard() {
                   <th>Role</th>
                   <th>Status</th>
                   <th>Registered</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -147,6 +161,17 @@ function AdminDashboard() {
                       </span>
                     </td>
                     <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="danger-button"
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={currentUser?.id === user.id}
+                        title={currentUser?.id === user.id ? "Cannot delete your own account" : "Delete user"}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

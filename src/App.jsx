@@ -12,6 +12,7 @@ import Documents from "./pages/Documents/Documents";
 import ShipmentDetails from "./pages/ShipmentDetails/ShipmentDetails";
 import Users from "./pages/Users/Users";
 import Ports from "./pages/Ports/Ports";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 
 function ProtectedLayout() {
   return (
@@ -44,12 +45,10 @@ function App() {
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
-            <Route
-              path="/shipments/:id"
-              element={<ShipmentDetails />}
-            />
+            <Route path="/shipments/:id" element={<ShipmentDetails />} />
             <Route element={<AdminRoute />}>
               <Route path="/users" element={<Users />} />
+              <Route path="/admin" element={<AdminDashboard />} />
             </Route>
           </Route>
         </Route>

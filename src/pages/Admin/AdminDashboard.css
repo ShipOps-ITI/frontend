@@ -223,6 +223,20 @@ button:disabled {
   background: #dde3ea;
 }
 
+.danger-button {
+  background: #b42318;
+  color: #fff;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #912018;
+}
+
+.danger-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .admin-page {
     padding: 32px 0;
