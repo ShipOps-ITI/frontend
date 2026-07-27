@@ -1,14 +1,23 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { logout, getUser } from "../../services/auth.service";
 import "./Navbar.css";
 
 function Navbar() {
   const navigate = useNavigate();
-  const user = getUser();
+  const location = useLocation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Get user from localStorage whenever route changes
+    const currentUser = getUser();
+    setUser(currentUser);
+  }, [location]); // Re-run when location changes
 
   const handleLogout = async () => {
     try {
       await logout();
+      setUser(null);
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -30,17 +39,14 @@ function Navbar() {
           {["ADMIN", "FLEET_MANAGER"].includes(user?.role) && <NavLink to="/ports">Ports</NavLink>}
           <NavLink to="/documents">Documents</NavLink>
           {user?.role === "ADMIN" && <NavLink to="/users">Users</NavLink>}
-
+          {user?.role === "ADMIN" && <NavLink to="/admin">Admin</NavLink>}
         </div>
         <div className="nav-user">
           {user && (
             <>
-              <div className="user-context">
-                <span className="user-name">{user.name}</span>
-                <span className="user-role">{user.role.replaceAll("_", " ")}</span>
-              </div>
-              <button 
-                className="logout-btn" 
+              <span className="user-name">{user.name}</span>
+              <button
+                className="logout-btn"
                 onClick={handleLogout}
                 title="Logout"
               >
