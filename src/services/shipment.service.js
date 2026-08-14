@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const shipmentAPI = axios.create({
-  baseURL: "http://localhost:5000/api/shipments",
+  baseURL: import.meta.env.VITE_SHIPMENT_URL || "http://localhost:5004/api/shipments",
 });
 
 shipmentAPI.interceptors.request.use((config) => {
