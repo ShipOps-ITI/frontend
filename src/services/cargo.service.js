@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const cargoAPI = axios.create({
-  baseURL: "http://localhost:5000/api/cargo",
+  baseURL: import.meta.env.VITE_CARGO_URL || "http://localhost:5002/api/cargo",
 });
 
 cargoAPI.interceptors.request.use((config) => {

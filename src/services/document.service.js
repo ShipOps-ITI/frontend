@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const documentAPI = axios.create({
-  baseURL: "http://localhost:5003",
+  baseURL: import.meta.env.VITE_DOCUMENT_URL || "http://localhost:5003",
 });
 
 export const getDocuments = () => {
