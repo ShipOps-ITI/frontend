@@ -40,7 +40,7 @@ function Chatbot() {
       <div className="chatbot-container">
         <header className="chatbot-header">
           <div className="bot-info">
-            <div className="bot-avatar">AI</div>
+            <div className="bot-avatar">🤖</div>
             <div><h2>AI Assistant</h2><span>Online</span></div>
           </div>
         </header>
@@ -48,9 +48,9 @@ function Chatbot() {
         <main className="chatbot-messages">
           {messages.map((message) => (
             <div key={message.id} className={`message-row ${message.sender}`}>
-              {message.sender === "bot" && <div className="message-avatar">AI</div>}
+              {message.sender === "bot" && <div className="message-avatar">🤖</div>}
               <div className="message">{message.text}</div>
-              {message.sender === "user" && <div className="message-avatar">You</div>}
+              {message.sender === "user" && <div className="message-avatar">👤</div>}
             </div>
           ))}
         </main>
