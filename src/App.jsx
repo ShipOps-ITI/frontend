@@ -16,12 +16,7 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Chatbot from "./pages/Chatbot/Chatbot";
 
 function ProtectedLayout() {
-  return (
-    <>
-      <Navbar />
-      <Outlet />
-    </>
-  );
+  return <><Navbar /><Outlet /></>;
 }
 
 function App() {
@@ -29,20 +24,16 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
         <Route element={<PublicRoute />}>
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
         </Route>
-
         <Route element={<ProtectedRoute />}>
           <Route element={<ProtectedLayout />}>
             <Route path="/companies" element={<Companies />} />
             <Route path="/fleets" element={<Fleets />} />
             <Route path="/ships" element={<Ships />} />
-            <Route element={<OperationsRoute />}>
-              <Route path="/ports" element={<Ports />} />
-            </Route>
+            <Route element={<OperationsRoute />}><Route path="/ports" element={<Ports />} /></Route>
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
@@ -54,7 +45,6 @@ function App() {
             </Route>
           </Route>
         </Route>
-
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

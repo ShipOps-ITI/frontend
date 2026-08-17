@@ -36,26 +36,26 @@ function Chatbot() {
   };
 
   return (
-    <div className="app">
-      <div className="chat-container">
-        <header className="chat-header">
+    <div className="chatbot-page">
+      <div className="chatbot-container">
+        <header className="chatbot-header">
           <div className="bot-info">
-            <div className="bot-avatar">🤖</div>
-            <div><h2>AI Assistant</h2><span>● Online</span></div>
+            <div className="bot-avatar">AI</div>
+            <div><h2>AI Assistant</h2><span>Online</span></div>
           </div>
         </header>
 
-        <main className="messages">
+        <main className="chatbot-messages">
           {messages.map((message) => (
             <div key={message.id} className={`message-row ${message.sender}`}>
-              {message.sender === "bot" && <div className="message-avatar">🤖</div>}
+              {message.sender === "bot" && <div className="message-avatar">AI</div>}
               <div className="message">{message.text}</div>
-              {message.sender === "user" && <div className="message-avatar">👤</div>}
+              {message.sender === "user" && <div className="message-avatar">You</div>}
             </div>
           ))}
         </main>
 
-        <div className="input-container">
+        <div className="chatbot-input-container">
           <input
             type="text"
             placeholder="Ask about shipments, ships, fleets, ports, or companies..."

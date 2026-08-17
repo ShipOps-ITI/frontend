@@ -1,6 +1,6 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { logout, getUser } from "../../services/auth.service";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getUser, logout } from "../../services/auth.service";
 import "./Navbar.css";
 
 function Navbar() {
@@ -9,10 +9,8 @@ function Navbar() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Get user from localStorage whenever route changes
-    const currentUser = getUser();
-    setUser(currentUser);
-  }, [location]); // Re-run when location changes
+    setUser(getUser());
+  }, [location]);
 
   const handleLogout = async () => {
     try {
@@ -27,9 +25,7 @@ function Navbar() {
   return (
     <header className="navbar">
       <nav className="navbar-content" aria-label="Main navigation">
-        <NavLink to="/companies" className="brand">
-          ShipOps
-        </NavLink>
+        <NavLink to="/companies" className="brand">ShipOps</NavLink>
         <div className="nav-links">
           <NavLink to="/companies">Companies</NavLink>
           <NavLink to="/fleets">Fleets</NavLink>
@@ -38,23 +34,12 @@ function Navbar() {
           <NavLink to="/dashboard">Dashboard</NavLink>
           {["ADMIN", "FLEET_MANAGER"].includes(user?.role) && <NavLink to="/ports">Ports</NavLink>}
           <NavLink to="/documents">Documents</NavLink>
-          <NavLink to="/chatbot">🤖</NavLink>
+          <NavLink to="/chatbot">AI Assistant</NavLink>
           {user?.role === "ADMIN" && <NavLink to="/users">Users</NavLink>}
           {user?.role === "ADMIN" && <NavLink to="/admin">Admin</NavLink>}
         </div>
         <div className="nav-user">
-          {user && (
-            <>
-              <span className="user-name">{user.name}</span>
-              <button
-                className="logout-btn"
-                onClick={handleLogout}
-                title="Logout"
-              >
-                Logout
-              </button>
-            </>
-          )}
+          {user && <><span className="user-name">{user.name}</span><button className="logout-btn" onClick={handleLogout} title="Logout">Logout</button></>}
         </div>
       </nav>
     </header>
