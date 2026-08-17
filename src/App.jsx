@@ -13,6 +13,7 @@ import ShipmentDetails from "./pages/ShipmentDetails/ShipmentDetails";
 import Users from "./pages/Users/Users";
 import Ports from "./pages/Ports/Ports";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import Chatbot from "./pages/Chatbot/Chatbot";
 
 function ProtectedLayout() {
   return (
@@ -45,6 +46,7 @@ function App() {
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
+            <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/shipments/:id" element={<ShipmentDetails />} />
             <Route element={<AdminRoute />}>
               <Route path="/users" element={<Users />} />

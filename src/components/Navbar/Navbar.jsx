@@ -38,6 +38,7 @@ function Navbar() {
           <NavLink to="/dashboard">Dashboard</NavLink>
           {["ADMIN", "FLEET_MANAGER"].includes(user?.role) && <NavLink to="/ports">Ports</NavLink>}
           <NavLink to="/documents">Documents</NavLink>
+          <NavLink to="/chatbot">🤖</NavLink>
           {user?.role === "ADMIN" && <NavLink to="/users">Users</NavLink>}
           {user?.role === "ADMIN" && <NavLink to="/admin">Admin</NavLink>}
         </div>
