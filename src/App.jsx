@@ -13,6 +13,10 @@ import ShipmentDetails from "./pages/ShipmentDetails/ShipmentDetails";
 import Users from "./pages/Users/Users";
 import Ports from "./pages/Ports/Ports";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+// Importing chatbot 
+import Chatbot from "./pages/Chatbot/Chatbot";
+
+
 
 function ProtectedLayout() {
   return (
@@ -50,6 +54,8 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>
+            {/* ChatBot Route */}
+            <Route path="/chatbot" element={<Chatbot />} />
           </Route>
         </Route>
 
