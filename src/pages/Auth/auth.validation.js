@@ -1,6 +1,7 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const REGISTRATION_ROLES = ["ADMIN", "FLEET_MANAGER", "CUSTOMER"];
 
-export const validateRegister = ({ name, email, password }) => {
+export const validateRegister = ({ name, email, password, role }) => {
   const errors = {};
 
   if (name.trim().length < 2 || name.trim().length > 100) {
@@ -13,6 +14,10 @@ export const validateRegister = ({ name, email, password }) => {
 
   if (password.length < 8 || password.length > 128) {
     errors.password = "Password must be between 8 and 128 characters.";
+  }
+
+  if (!REGISTRATION_ROLES.includes(role)) {
+    errors.role = "Choose a valid role.";
   }
 
   return errors;

@@ -10,6 +10,7 @@ function Register() {
     name: "",
     email: "",
     password: "",
+    role: "CUSTOMER",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
@@ -101,6 +102,22 @@ function Register() {
                 </button>
               </span>
               {errors.password && <span id="password-error" className="field-error">{errors.password}</span>}
+            </label>
+
+            <label>
+              Role
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.role)}
+                aria-describedby={errors.role ? "role-error" : undefined}
+              >
+                <option value="CUSTOMER">Customer</option>
+                <option value="FLEET_MANAGER">Fleet Manager</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+              {errors.role && <span id="role-error" className="field-error">{errors.role}</span>}
             </label>
 
             <button type="submit">Create account</button>
