@@ -10,6 +10,7 @@ import { getUser } from "../../services/auth.service";
 import { getCompanies } from "../../services/company.service";
 import { getShips, getShipsByCompany } from "../../services/ship.service";
 import { getPorts } from "../../services/port.service";
+import { getCustomers } from "../../services/users.service";
 import "./Shipments.css";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +19,7 @@ const emptyForm = {
   shipmentNumber: "",
   shipId: "",
   customerName: "",
+  customerUserId: "",
   originPortId: "",
   destinationPortId: "",
   departureDate: "",
@@ -38,9 +40,11 @@ function Shipments() {
   const navigate = useNavigate();
   const user = getUser();
   const isAdmin = user?.role === "ADMIN";
+  const canManageShipments = ["ADMIN", "FLEET_MANAGER"].includes(user?.role);
   const [shipments, setShipments] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [ships, setShips] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [originPorts, setOriginPorts] = useState([]);
   const [destinationPorts, setDestinationPorts] = useState([]);
   const [originSearch, setOriginSearch] = useState("");
@@ -61,6 +65,7 @@ function Shipments() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [portSearchError, setPortSearchError] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   const loadShipments = useCallback(async (page = filters.page) => {
@@ -98,12 +103,14 @@ function Shipments() {
   useEffect(() => {
     async function loadReferences() {
       try {
-        const [companyResponse, shipResponse] = await Promise.all([
+        const [companyResponse, shipResponse, customerResponse] = await Promise.all([
           getCompanies(1, 100),
           getShips(1, 100),
+          getCustomers(),
         ]);
         setCompanies(companyResponse.data.data);
         setShips(shipResponse.data.data);
+        setCustomers(customerResponse.data);
       } catch (requestError) {
         setError(getShipmentError(requestError, "Unable to load shipment reference data."));
       }
@@ -114,7 +121,14 @@ function Shipments() {
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (originSearch.trim().length < 2) return setOriginPorts([]);
-      try { setOriginPorts((await getPorts(1, 25, originSearch)).data.data); } catch { setOriginPorts([]); }
+      try {
+        const response = await getPorts(1, 25, originSearch);
+        setOriginPorts(response.data.data);
+        setPortSearchError("");
+      } catch (requestError) {
+        setOriginPorts([]);
+        setPortSearchError(getShipmentError(requestError, "Unable to search ports. Check that Core service is running."));
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [originSearch]);
@@ -122,7 +136,14 @@ function Shipments() {
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (destinationSearch.trim().length < 2) return setDestinationPorts([]);
-      try { setDestinationPorts((await getPorts(1, 25, destinationSearch)).data.data); } catch { setDestinationPorts([]); }
+      try {
+        const response = await getPorts(1, 25, destinationSearch);
+        setDestinationPorts(response.data.data);
+        setPortSearchError("");
+      } catch (requestError) {
+        setDestinationPorts([]);
+        setPortSearchError(getShipmentError(requestError, "Unable to search ports. Check that Core service is running."));
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [destinationSearch]);
@@ -133,6 +154,16 @@ function Shipments() {
     setForm((current) => ({
       ...current,
       [name]: value,
+    }));
+  }
+
+  function handleCustomerChange(event) {
+    const customerUserId = event.target.value;
+    const customer = customers.find((item) => item.id === Number(customerUserId));
+    setForm((current) => ({
+      ...current,
+      customerUserId,
+      customerName: customer?.name || "",
     }));
   }
 
@@ -182,6 +213,7 @@ function Shipments() {
         ...shipmentForm,
         ...(isAdmin ? { companyId: Number(companyId) } : {}),
         shipId: Number(form.shipId),
+        customerUserId: Number(form.customerUserId),
         originPortId: Number(form.originPortId),
         destinationPortId: Number(form.destinationPortId),
       };
@@ -209,6 +241,7 @@ function Shipments() {
       shipmentNumber: shipment.shipmentNumber,
       shipId: shipment.shipId,
       customerName: shipment.customerName,
+      customerUserId: shipment.customerUserId || "",
       originPortId: shipment.originPortId || "",
       destinationPortId: shipment.destinationPortId || "",
       departureDate: shipment.departureDate.slice(0, 10),
@@ -246,11 +279,11 @@ function Shipments() {
         <div>
           <p className="eyebrow">ShipOps</p>
           <h1>Shipments</h1>
-          <p>Manage all shipments in the system.</p>
+          <p>{canManageShipments ? "Manage shipments assigned to your operation." : "View shipments assigned to your account."}</p>
         </div>
       </section>
 
-      {showForm && <section className="shipment-form-card">
+      {canManageShipments && showForm && <section className="shipment-form-card">
         <h2>{editingId ? "Edit Shipment" : "Create Shipment"}</h2>
 
         <form onSubmit={handleSubmit} className="shipment-form">
@@ -283,12 +316,11 @@ function Shipments() {
 
           <label>
             Customer
-            <input
-              name="customerName"
-              value={form.customerName}
-              onChange={handleChange}
-              required
-            />
+            <select name="customerUserId" value={form.customerUserId} onChange={handleCustomerChange} required>
+              <option value="">Select a customer account</option>
+              {form.customerUserId && !customers.some((customer) => customer.id === Number(form.customerUserId)) && <option value={form.customerUserId}>{form.customerName || "Assigned customer"}</option>}
+              {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} ({customer.email})</option>)}
+            </select>
           </label>
 
           <label>
@@ -302,6 +334,7 @@ function Shipments() {
               {form.originPortId && !originPorts.some((port) => port.id === Number(form.originPortId)) && <option value={form.originPortId}>{originSearch || "Current origin"}</option>}
               {originPorts.map((port) => <option key={port.id} value={port.id}>{port.name}, {port.country} {port.unLocode ? `(${port.unLocode})` : ""}</option>)}
             </select>
+            {originSearch.trim().length >= 2 && originPorts.length === 0 && !portSearchError && <small>No matching ports found.</small>}
           </label>
 
           <label>
@@ -315,6 +348,7 @@ function Shipments() {
               {form.destinationPortId && !destinationPorts.some((port) => port.id === Number(form.destinationPortId)) && <option value={form.destinationPortId}>{destinationSearch || "Current destination"}</option>}
               {destinationPorts.map((port) => <option key={port.id} value={port.id}>{port.name}, {port.country} {port.unLocode ? `(${port.unLocode})` : ""}</option>)}
             </select>
+            {destinationSearch.trim().length >= 2 && destinationPorts.length === 0 && !portSearchError && <small>No matching ports found.</small>}
           </label>
 
           <label>
@@ -378,7 +412,7 @@ function Shipments() {
         </form>
       </section>}
 
-      {error && <p className="error-message">{error}</p>}
+      {(error || portSearchError) && <p className="error-message">{error || portSearchError}</p>}
 
       <section className="shipment-list-card">
 
@@ -387,7 +421,7 @@ function Shipments() {
             <h2>All Shipments</h2>
             <span>{pagination?.total ?? shipments.length}</span>
           </div>
-          <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new shipment</button>
+          {canManageShipments && <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new shipment</button>}
         </div>
 
         <div className="filter-bar">
@@ -482,7 +516,7 @@ function Shipments() {
                     </p>
                   </div>
 
-                  <div className="row-actions">
+                  {canManageShipments && <div className="row-actions">
                     <button
                       className="secondary-button"
                       onClick={(e) => {
@@ -502,7 +536,7 @@ function Shipments() {
                     >
                       Delete
                     </button>
-                  </div>
+                  </div>}
                 </article>
               ))}
             </div>

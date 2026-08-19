@@ -25,18 +25,24 @@ function Navbar() {
   return (
     <header className="navbar">
       <nav className="navbar-content" aria-label="Main navigation">
-        <NavLink to="/companies" className="brand">ShipOps</NavLink>
+        <NavLink to="/dashboard" className="brand">ShipOps</NavLink>
         <div className="nav-links">
-          <NavLink to="/companies">Companies</NavLink>
-          <NavLink to="/fleets">Fleets</NavLink>
-          <NavLink to="/ships">Ships</NavLink>
-          <NavLink to="/shipments">Shipments</NavLink>
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          {["ADMIN", "FLEET_MANAGER"].includes(user?.role) && <NavLink to="/ports">Ports</NavLink>}
-          <NavLink to="/documents">Documents</NavLink>
-          <NavLink to="/chatbot">AI Assistant</NavLink>
-          {user?.role === "ADMIN" && <NavLink to="/users">Users</NavLink>}
-          {user?.role === "ADMIN" && <NavLink to="/admin">Admin</NavLink>}
+          {user?.role === "ADMIN" && <>
+            <NavLink to="/companies">Companies</NavLink><NavLink to="/fleets">Fleets</NavLink>
+            <NavLink to="/ships">Ships</NavLink><NavLink to="/shipments">Shipments</NavLink>
+            <NavLink to="/tracking">Tracking</NavLink><NavLink to="/ports">Ports</NavLink><NavLink to="/users">Users</NavLink>
+            <NavLink to="/dashboard">Dashboard</NavLink>
+          </>}
+          {user?.role === "FLEET_MANAGER" && <>
+            <NavLink to="/fleets">Fleets</NavLink><NavLink to="/ships">Ships</NavLink>
+            <NavLink to="/shipments">Shipments</NavLink><NavLink to="/tracking">Tracking</NavLink><NavLink to="/ports">Ports</NavLink>
+            <NavLink to="/dashboard">Dashboard</NavLink>
+          </>}
+          {user?.role === "CUSTOMER" && <>
+            <NavLink to="/shipments">My Shipments</NavLink><NavLink to="/documents">Documents</NavLink>
+            <NavLink to="/dashboard">Customer Dashboard</NavLink>
+          </>}
+          {user?.role !== "CUSTOMER" && <NavLink to="/documents">Documents</NavLink>}
         </div>
         <div className="nav-user">
           {user && <><span className="user-name">{user.name}</span><button className="logout-btn" onClick={handleLogout} title="Logout">Logout</button></>}

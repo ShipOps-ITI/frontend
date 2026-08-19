@@ -4,6 +4,12 @@ const documentAPI = axios.create({
   baseURL: import.meta.env.VITE_DOCUMENT_URL || "http://localhost:5003",
 });
 
+documentAPI.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export const getDocuments = () => {
   return documentAPI.get("/documents");
 };

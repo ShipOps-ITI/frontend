@@ -14,9 +14,11 @@ import Users from "./pages/Users/Users";
 import Ports from "./pages/Ports/Ports";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Chatbot from "./pages/Chatbot/Chatbot";
+import FloatingAssistant from "./components/FloatingAssistant/FloatingAssistant";
+import Tracking from "./pages/Tracking/Tracking";
 
 function ProtectedLayout() {
-  return <><Navbar /><Outlet /></>;
+  return <><Navbar /><Outlet /><FloatingAssistant /></>;
 }
 
 function App() {
@@ -30,9 +32,12 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route element={<ProtectedLayout />}>
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/fleets" element={<Fleets />} />
-            <Route path="/ships" element={<Ships />} />
+            <Route element={<OperationsRoute />}>
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/fleets" element={<Fleets />} />
+              <Route path="/ships" element={<Ships />} />
+              <Route path="/tracking" element={<Tracking />} />
+            </Route>
             <Route element={<OperationsRoute />}><Route path="/ports" element={<Ports />} /></Route>
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />

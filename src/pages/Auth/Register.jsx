@@ -4,6 +4,8 @@ import { register } from "../../services/auth.service";
 import { validateRegister } from "./auth.validation";
 import "./Auth.css";
 
+const allowTestRoleRegistration = import.meta.env.VITE_ALLOW_TEST_ROLE_REGISTRATION === "true";
+
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -60,7 +62,7 @@ function Register() {
           <p className="auth-subtitle">Create an account to start using ShipOps.</p>
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
-            <label>
+            {allowTestRoleRegistration && <label>
               Full name
               <input
                 type="text"
@@ -71,7 +73,7 @@ function Register() {
                 aria-describedby={errors.name ? "name-error" : undefined}
               />
               {errors.name && <span id="name-error" className="field-error">{errors.name}</span>}
-            </label>
+            </label>}
 
             <label>
               Email

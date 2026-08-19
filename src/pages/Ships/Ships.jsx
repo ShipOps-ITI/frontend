@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import Pagination from "../../components/Pagination/Pagination";
-import ShipMap from "../../components/ShipMap/ShipMap";
 import { countries, getCountryFlagImageUrl } from "../../constants/countries";
 import { getCompanies } from "../../services/company.service";
 import { getFleetsByCompany } from "../../services/fleet.service";
@@ -295,8 +294,6 @@ function Ships() {
       </section>}
 
       {error && <p className="error-message">{error}</p>}
-
-      <ShipMap ships={ships} />
 
       <section className="ship-list-card">
         <div className="list-heading">

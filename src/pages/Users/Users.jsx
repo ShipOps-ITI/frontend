@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUser } from "../../services/auth.service";
 import { getCompanies } from "../../services/company.service";
-import { getUsers, updateUser } from "../../services/users.service";
+import { createUser, getUsers, updateUser } from "../../services/users.service";
 import "./Users.css";
 
 const roles = ["ADMIN", "FLEET_MANAGER", "CUSTOMER"];
@@ -10,6 +10,7 @@ const emptyForm = {
   id: null,
   name: "",
   email: "",
+  password: "",
   role: "CUSTOMER",
   companyId: "",
   isActive: true,
@@ -76,6 +77,12 @@ function Users() {
     setSuccess("");
   }
 
+  function startCreating() {
+    setForm(emptyForm);
+    setError("");
+    setSuccess("");
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
@@ -93,12 +100,23 @@ function Users() {
 
     try {
       setSaving(true);
-      await updateUser(form.id, {
-        role: form.role,
-        companyId: form.role === "ADMIN" ? null : (form.companyId ? Number(form.companyId) : null),
-        isActive: form.isActive,
-      });
-      setSuccess("User updated. They must log in again before new access permissions apply.");
+      if (form.id) {
+        await updateUser(form.id, {
+          role: form.role,
+          companyId: form.role === "FLEET_MANAGER" ? Number(form.companyId) : null,
+          isActive: form.isActive,
+        });
+        setSuccess("User updated. They must log in again before new access permissions apply.");
+      } else {
+        await createUser({
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+          role: form.role,
+          ...(form.role === "FLEET_MANAGER" ? { companyId: Number(form.companyId) } : {}),
+        });
+        setSuccess("Account created. The user can now sign in.");
+      }
       setForm(emptyForm);
       await loadData();
     } catch (requestError) {
@@ -117,34 +135,36 @@ function Users() {
       </section>
 
       <section className="users-card">
-        <h2>{form.id ? "Edit user access" : "Select a user"}</h2>
-        {form.id ? (
-          <form className="user-form" onSubmit={handleSubmit}>
-            <label>Name<input value={form.name} disabled /></label>
-            <label>Email<input value={form.email} disabled /></label>
-            <label>
-              Role
-              <select name="role" value={form.role} onChange={handleChange}>
-                {roles.map((role) => <option key={role} value={role}>{role.replace("_", " ")}</option>)}
-              </select>
-            </label>
-            <label>
-              Company {form.role === "FLEET_MANAGER" && <span>(required)</span>}
-              <select name="companyId" value={form.companyId} onChange={handleChange} disabled={form.role === "ADMIN"} required={form.role === "FLEET_MANAGER"}>
-                <option value="">{form.role === "ADMIN" ? "Global access" : "No company assigned"}</option>
-                {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
-              </select>
-            </label>
-            <label className="active-toggle">
-              <input name="isActive" type="checkbox" checked={form.isActive} onChange={handleChange} disabled={form.id === currentUser?.id} />
-              Account is active
-            </label>
-            <div className="form-actions">
-              <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save access"}</button>
-              <button type="button" className="secondary-button" onClick={cancelEditing}>Cancel</button>
-            </div>
-          </form>
-        ) : <p>Select a user below to manage their access.</p>}
+        <div className="list-heading">
+          <h2>{form.id ? "Edit user access" : "Create team account"}</h2>
+          {!form.id && <button type="button" onClick={startCreating}>Add team member</button>}
+        </div>
+        <form className="user-form" onSubmit={handleSubmit}>
+          <label>Name<input name="name" value={form.name} onChange={handleChange} disabled={Boolean(form.id)} required /></label>
+          <label>Email<input name="email" type="email" value={form.email} onChange={handleChange} disabled={Boolean(form.id)} required /></label>
+          {!form.id && <label>Password<input name="password" type="password" value={form.password} onChange={handleChange} minLength="8" required /></label>}
+          <label>
+            Role
+            <select name="role" value={form.role} onChange={handleChange}>
+              {(form.id ? roles : ["FLEET_MANAGER", "CUSTOMER"]).map((role) => <option key={role} value={role}>{role.replace("_", " ")}</option>)}
+            </select>
+          </label>
+          <label>
+            Company {form.role === "FLEET_MANAGER" && <span>(required)</span>}
+            <select name="companyId" value={form.companyId} onChange={handleChange} disabled={form.role !== "FLEET_MANAGER"} required={form.role === "FLEET_MANAGER"}>
+              <option value="">{form.role === "FLEET_MANAGER" ? "Select a company" : "No company assignment"}</option>
+              {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+            </select>
+          </label>
+          {form.id && <label className="active-toggle">
+            <input name="isActive" type="checkbox" checked={form.isActive} onChange={handleChange} disabled={form.id === currentUser?.id} />
+            Account is active
+          </label>}
+          <div className="form-actions">
+            <button type="submit" disabled={saving}>{saving ? "Saving..." : form.id ? "Save access" : "Create account"}</button>
+            <button type="button" className="secondary-button" onClick={cancelEditing}>Cancel</button>
+          </div>
+        </form>
       </section>
 
       {error && <p className="error-message">{error}</p>}

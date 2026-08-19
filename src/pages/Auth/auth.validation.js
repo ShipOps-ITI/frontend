@@ -16,7 +16,7 @@ export const validateRegister = ({ name, email, password, role }) => {
     errors.password = "Password must be between 8 and 128 characters.";
   }
 
-  if (!REGISTRATION_ROLES.includes(role)) {
+  if (import.meta.env.VITE_ALLOW_TEST_ROLE_REGISTRATION === "true" && !REGISTRATION_ROLES.includes(role)) {
     errors.role = "Choose a valid role.";
   }
 

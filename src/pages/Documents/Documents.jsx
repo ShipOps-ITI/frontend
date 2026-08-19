@@ -6,9 +6,11 @@ import {
   downloadDocument,
 } from "../../services/document.service";
 import "./Documents.css";
+import { getUser } from "../../services/auth.service";
 
 
 function Documents() {
+  const canManageDocuments = ["ADMIN", "FLEET_MANAGER"].includes(getUser()?.role);
 
   const [documents, setDocuments] = useState([]);
   const [file, setFile] = useState(null);
@@ -188,7 +190,7 @@ function Documents() {
 
 
 
-      <section className="document-form-card">
+      {canManageDocuments && <section className="document-form-card">
 
         <h2>
           Upload Document
@@ -283,7 +285,7 @@ function Documents() {
         </form>
 
 
-      </section>
+      </section>}
 
 
 
@@ -384,14 +386,14 @@ function Documents() {
 
 
 
-                  <button
+                  {canManageDocuments && <button
                     className="danger-button"
                     onClick={() =>
                       handleDelete(doc.id)
                     }
                   >
                     Delete
-                  </button>
+                  </button>}
 
 
                 </div>

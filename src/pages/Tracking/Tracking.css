@@ -1,0 +1,21 @@
+.tracking-page { width: min(100% - 32px, 1180px); margin: 0 auto; padding: 42px 0 56px; }
+.tracking-hero { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.tracking-hero h1 { margin: 6px 0 8px; font-size: clamp(2rem, 4vw, 2.7rem); }
+.tracking-hero p:last-child { margin: 0; color: #667085; }
+.tracking-actions { display: flex; align-items: center; gap: 12px; color: #667085; font-size: .86rem; }
+.tracking-actions button { border: 0; border-radius: 8px; padding: 10px 14px; background: #146c94; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.tracking-actions button:disabled { opacity: .65; cursor: wait; }
+.tracking-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.tracking-summary article { display: grid; gap: 4px; padding: 18px 20px; border: 1px solid #d8e4ed; border-radius: 12px; background: linear-gradient(135deg, #fff, #f2f8fb); box-shadow: 0 2px 8px rgb(16 24 40 / 3%); }
+.tracking-summary span, .tracking-summary small { color: #667085; }
+.tracking-summary strong { color: #0b4f6c; font-size: 1.8rem; }
+.tracking-page .ship-map-card { padding: 16px; }
+.tracking-page .ship-map { height: min(62vh, 620px); border-radius: 10px; }
+.tracking-map-area { position: relative; }
+.tracking-map-loading { position: absolute; z-index: 500; top: 86px; left: 50%; transform: translateX(-50%); padding: 9px 13px; border-radius: 999px; background: rgba(15, 45, 64, .85); color: #fff; font-size: .86rem; font-weight: 700; box-shadow: 0 4px 14px rgba(8, 30, 48, .22); }
+.tracking-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; padding: 14px 18px; border: 1px solid #d8e4ed; border-radius: 10px; background: #fff; color: #475467; font-size: .88rem; }
+.tracking-legend span { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+.tracking-legend p { margin: 0 0 0 auto; color: #667085; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; background: #1682a7; }
+.legend-dot.at-sea { background: #16a3d8; }.legend-dot.docked { background: #7c5ce0; }.legend-dot.maintenance { background: #e59a19; }
+@media (max-width: 760px) { .tracking-page { width: min(100% - 24px, 1180px); padding-top: 28px; }.tracking-hero { align-items: start; flex-direction: column; }.tracking-summary { grid-template-columns: 1fr; }.tracking-legend p { width: 100%; margin-left: 0; }.tracking-actions { width: 100%; justify-content: space-between; } }
