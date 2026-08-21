@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { register } from "../../services/auth.service";
 import { validateRegister } from "./auth.validation";
 import "./Auth.css";
+import getEnv from "../../runtimeEnv";
 
-const allowTestRoleRegistration = import.meta.env.VITE_ALLOW_TEST_ROLE_REGISTRATION === "true";
+const allowTestRoleRegistration = getEnv("VITE_ALLOW_TEST_ROLE_REGISTRATION") === "true";
 
 function Register() {
   const navigate = useNavigate();

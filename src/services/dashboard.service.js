@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const dashboardAPI = axios.create({
-  baseURL: import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5003",
+  baseURL: "/dashboard",
   headers: {
     "Content-Type": "application/json",
   },
@@ -13,6 +13,4 @@ dashboardAPI.interceptors.request.use((config) => {
   return config;
 });
 
-export const getStatistics = () => {
-  return dashboardAPI.get("/dashboard/statistics");
-};
+export const getStatistics = () => dashboardAPI.get("/statistics");

@@ -1,7 +1,8 @@
 import axios from "axios";
+import getEnv from "../runtimeEnv";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_AUTH_URL || "http://localhost:5001",
+    baseURL: getEnv("VITE_AUTH_URL") || "/auth",
     headers: {
         "Content-Type": "application/json",
     },
@@ -32,7 +33,7 @@ api.interceptors.response.use(
 
             try {
                 // Try to refresh the token
-                const refreshUrl = (import.meta.env.VITE_AUTH_URL || "http://localhost:5001").replace(/\/+$/, "") + "/refresh";
+                const refreshUrl = (getEnv("VITE_AUTH_URL") || "/auth").replace(/\/+$/, "") + "/refresh";
                 const response = await axios.post(
                     refreshUrl,
                     {},
