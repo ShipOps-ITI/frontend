@@ -1,7 +1,7 @@
 import getEnv from "../../runtimeEnv";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const REGISTRATION_ROLES = ["ADMIN", "FLEET_MANAGER", "CUSTOMER"];
+const REGISTRATION_ROLES = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"];
 
 export const validateRegister = ({ name, email, password, role }) => {
   const errors = {};

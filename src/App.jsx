@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
-import { AdminRoute, OperationsRoute, ProtectedRoute, PublicRoute } from "./components/RouteGuards";
+import { AdminRoute, CompanyAdminRoute, CompanyOnboardingGate, OperationsRoute, ProtectedRoute, PublicRoute } from "./components/RouteGuards";
 import Companies from "./pages/Companies/Companies";
 import Fleets from "./pages/Fleets/Fleets";
 import Ships from "./pages/Ships/Ships";
@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Chatbot from "./pages/Chatbot/Chatbot";
 import FloatingAssistant from "./components/FloatingAssistant/FloatingAssistant";
 import Tracking from "./pages/Tracking/Tracking";
+import CompanyOnboarding from "./pages/Onboarding/CompanyOnboarding";
 
 function ProtectedLayout() {
   return <><Navbar /><Outlet /><FloatingAssistant /></>;
@@ -31,6 +32,8 @@ function App() {
           <Route path="/login" element={<Login />} />
         </Route>
         <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding/company" element={<CompanyOnboarding />} />
+          <Route element={<CompanyOnboardingGate />}>
           <Route element={<ProtectedLayout />}>
             <Route element={<OperationsRoute />}>
               <Route path="/companies" element={<Companies />} />
@@ -44,10 +47,13 @@ function App() {
             <Route path="/documents" element={<Documents />} />
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/shipments/:id" element={<ShipmentDetails />} />
-            <Route element={<AdminRoute />}>
+            <Route element={<CompanyAdminRoute />}>
               <Route path="/users" element={<Users />} />
+            </Route>
+            <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>
+          </Route>
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

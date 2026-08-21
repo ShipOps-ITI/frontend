@@ -4,7 +4,8 @@ import { getCompanies } from "../../services/company.service";
 import { createUser, getUsers, updateUser } from "../../services/users.service";
 import "./Users.css";
 
-const roles = ["ADMIN", "FLEET_MANAGER", "CUSTOMER"];
+const roles = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"];
+const isCompanyRole = (role) => ["COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"].includes(role);
 
 const emptyForm = {
   id: null,
@@ -78,7 +79,7 @@ function Users() {
   }
 
   function startCreating() {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, companyId: currentUser?.role === "COMPANY_ADMIN" ? String(currentUser.companyId ?? "") : "" });
     setError("");
     setSuccess("");
   }
@@ -88,12 +89,14 @@ function Users() {
     setError("");
     setSuccess("");
 
-    if (form.role === "FLEET_MANAGER" && !form.companyId) {
-      setError("A Fleet Manager must be assigned to a company.");
+    const selectedCompanyId = currentUser?.role === "COMPANY_ADMIN" ? currentUser.companyId : form.companyId;
+
+    if (isCompanyRole(form.role) && !selectedCompanyId) {
+      setError("A Company Admin, Fleet Manager, or Customer must be assigned to a company.");
       return;
     }
 
-    if (form.id === currentUser?.id && (form.role !== "ADMIN" || !form.isActive)) {
+    if (form.id === currentUser?.id && (form.role !== currentUser?.role || !form.isActive)) {
       setError("You cannot remove your own Admin access or deactivate your own account.");
       return;
     }
@@ -103,7 +106,7 @@ function Users() {
       if (form.id) {
         await updateUser(form.id, {
           role: form.role,
-          companyId: form.role === "FLEET_MANAGER" ? Number(form.companyId) : null,
+          companyId: isCompanyRole(form.role) ? Number(selectedCompanyId) : null,
           isActive: form.isActive,
         });
         setSuccess("User updated. They must log in again before new access permissions apply.");
@@ -113,7 +116,7 @@ function Users() {
           email: form.email.trim().toLowerCase(),
           password: form.password,
           role: form.role,
-          ...(form.role === "FLEET_MANAGER" ? { companyId: Number(form.companyId) } : {}),
+          ...(isCompanyRole(form.role) ? { companyId: Number(selectedCompanyId) } : {}),
         });
         setSuccess("Account created. The user can now sign in.");
       }
@@ -146,13 +149,13 @@ function Users() {
           <label>
             Role
             <select name="role" value={form.role} onChange={handleChange}>
-              {(form.id ? roles : ["FLEET_MANAGER", "CUSTOMER"]).map((role) => <option key={role} value={role}>{role.replace("_", " ")}</option>)}
+            {(form.id ? roles : (currentUser?.role === "ADMIN" ? ["COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"] : ["FLEET_MANAGER", "CUSTOMER"])).map((role) => <option key={role} value={role}>{role.replace("_", " ")}</option>)}
             </select>
           </label>
           <label>
-            Company {form.role === "FLEET_MANAGER" && <span>(required)</span>}
-            <select name="companyId" value={form.companyId} onChange={handleChange} disabled={form.role !== "FLEET_MANAGER"} required={form.role === "FLEET_MANAGER"}>
-              <option value="">{form.role === "FLEET_MANAGER" ? "Select a company" : "No company assignment"}</option>
+            Company {isCompanyRole(form.role) && <span>(required)</span>}
+            <select name="companyId" value={form.companyId} onChange={handleChange} disabled={form.role === "ADMIN" || currentUser?.role === "COMPANY_ADMIN"} required={isCompanyRole(form.role)}>
+              <option value="">{isCompanyRole(form.role) ? "Select a company" : "No company assignment"}</option>
               {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
             </select>
           </label>

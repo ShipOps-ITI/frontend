@@ -83,7 +83,7 @@ function ShipMap({ ships }) {
         {locations.map((ship) => (
           <Marker
             key={ship.id}
-            center={[ship.currentLatitude, ship.currentLongitude]}
+            position={[ship.currentLatitude, ship.currentLongitude]}
             icon={shipIcon(ship)}
           >
             <Popup>

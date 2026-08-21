@@ -1,8 +1,15 @@
 import axios from "axios";
+<<<<<<< HEAD
 import getEnv from "../runtimeEnv";
 
 const documentAPI = axios.create({
   baseURL: getEnv("VITE_DOCUMENT_URL") || "/documents",
+=======
+import { getRuntimeEnv } from "../config/runtimeEnv";
+
+const documentAPI = axios.create({
+  baseURL: getRuntimeEnv("VITE_DOCUMENT_URL", "http://localhost:5003/documents"),
+>>>>>>> 865c419 (feat: add company admin onboarding and improve shipment workflows)
 });
 
 documentAPI.interceptors.request.use((config) => {

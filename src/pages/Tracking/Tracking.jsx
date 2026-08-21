@@ -50,7 +50,7 @@ function Tracking() {
 
       <section className="tracking-summary" aria-label="Tracking summary">
         <article><span>Vessels shown</span><strong>{liveShips.length}</strong><small>with a known location</small></article>
-        <article><span>At sea</span><strong>{liveShips.filter((ship) => ship.availabilityState === "AT_SEA").length}</strong><small>active voyage status</small></article>
+        <article><span>Marked at sea</span><strong>{liveShips.filter((ship) => ship.availabilityState === "AT_SEA").length}</strong><small>operational ship status</small></article>
         <article><span>Needs review</span><strong>{staleShips.length}</strong><small>AIS older than 10 minutes</small></article>
       </section>
 

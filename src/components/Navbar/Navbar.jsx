@@ -27,7 +27,7 @@ function Navbar() {
       <nav className="navbar-content" aria-label="Main navigation">
         <NavLink to="/dashboard" className="brand">ShipOps</NavLink>
         <div className="nav-links">
-          {user?.role === "ADMIN" && <>
+          {["ADMIN", "COMPANY_ADMIN"].includes(user?.role) && <>
             <NavLink to="/companies">Companies</NavLink><NavLink to="/fleets">Fleets</NavLink>
             <NavLink to="/ships">Ships</NavLink><NavLink to="/shipments">Shipments</NavLink>
             <NavLink to="/tracking">Tracking</NavLink><NavLink to="/ports">Ports</NavLink><NavLink to="/users">Users</NavLink>

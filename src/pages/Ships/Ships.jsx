@@ -135,7 +135,12 @@ function Ships() {
 
   function resetForm() {
     setForm(emptyForm);
-    setFleets([]);
+    // A Company Admin/Fleet Manager has one fixed company. Keep its already
+    // loaded fleets when opening the Ship form; clearing them leaves the
+    // dropdown empty because the company ID itself has not changed.
+    if (isAdmin) {
+      setFleets([]);
+    }
     setEditingId(null);
     setShowForm(false);
   }

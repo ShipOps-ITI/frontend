@@ -40,7 +40,7 @@ function Shipments() {
   const navigate = useNavigate();
   const user = getUser();
   const isAdmin = user?.role === "ADMIN";
-  const canManageShipments = ["ADMIN", "FLEET_MANAGER"].includes(user?.role);
+  const canManageShipments = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(user?.role);
   const [shipments, setShipments] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [ships, setShips] = useState([]);
@@ -213,7 +213,8 @@ function Shipments() {
         ...shipmentForm,
         ...(isAdmin ? { companyId: Number(companyId) } : {}),
         shipId: Number(form.shipId),
-        customerUserId: Number(form.customerUserId),
+        customerUserId: form.customerUserId ? Number(form.customerUserId) : null,
+        customerName: form.customerUserId ? form.customerName : null,
         originPortId: Number(form.originPortId),
         destinationPortId: Number(form.destinationPortId),
       };
@@ -315,9 +316,9 @@ function Shipments() {
           </label>
 
           <label>
-            Customer
-            <select name="customerUserId" value={form.customerUserId} onChange={handleCustomerChange} required>
-              <option value="">Select a customer account</option>
+            Customer <span>(optional)</span>
+            <select name="customerUserId" value={form.customerUserId} onChange={handleCustomerChange}>
+              <option value="">Unassigned</option>
               {form.customerUserId && !customers.some((customer) => customer.id === Number(form.customerUserId)) && <option value={form.customerUserId}>{form.customerName || "Assigned customer"}</option>}
               {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} ({customer.email})</option>)}
             </select>
@@ -508,7 +509,7 @@ function Shipments() {
                     </p>
 
                     <p>
-                      Customer: {shipment.customerName}
+                      Customer: {shipment.customerName || "Unassigned"}
                     </p>
 
                     <p>
