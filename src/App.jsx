@@ -14,6 +14,8 @@ import Users from "./pages/Users/Users";
 import Ports from "./pages/Ports/Ports";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Chatbot from "./pages/Chatbot/Chatbot";
+import Subscription from "./pages/Subscription/Subscription";
+import PaymentSuccess from "./pages/PaymentSuccess/PaymentSuccess";
 
 function ProtectedLayout() {
   return <><Navbar /><Outlet /></>;
@@ -28,6 +30,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
         </Route>
+        <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<ProtectedLayout />}>
             <Route path="/companies" element={<Companies />} />
@@ -38,6 +41,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/chatbot" element={<Chatbot />} />
+            <Route path="/subscription" element={<Subscription />} />
             <Route path="/shipments/:id" element={<ShipmentDetails />} />
             <Route element={<AdminRoute />}>
               <Route path="/users" element={<Users />} />
