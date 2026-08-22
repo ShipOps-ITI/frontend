@@ -11,7 +11,7 @@ import { getShipments } from "../../services/shipment.service";
 
 
 function Documents() {
-  const canManageDocuments = ["ADMIN", "FLEET_MANAGER"].includes(getUser()?.role);
+  const canManageDocuments = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(getUser()?.role);
 
   const [documents, setDocuments] = useState([]);
   const [shipments, setShipments] = useState([]);
@@ -22,6 +22,7 @@ function Documents() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
 
   useEffect(() => {
@@ -95,6 +96,7 @@ function Documents() {
 
       setFile(null);
       setShipmentId("");
+      setShowUploadForm(false);
 
       document
         .getElementById("document-file")
@@ -202,15 +204,22 @@ function Documents() {
 
         </div>
 
+        {canManageDocuments && (
+          <button type="button" onClick={() => { setError(""); setShowUploadForm(true); }}>
+            Upload document
+          </button>
+        )}
+
       </section>
 
 
 
-      {canManageDocuments && <section className="document-form-card">
+      {canManageDocuments && showUploadForm && <section className="document-form-card">
 
-        <h2>
-          Upload Document
-        </h2>
+        <div className="form-card-heading">
+          <div><h2>Upload a document</h2><p>Attach a file to one of your accessible shipments.</p></div>
+          <button type="button" className="secondary-button" onClick={() => setShowUploadForm(false)}>Close</button>
+        </div>
 
 
         <form
@@ -297,7 +306,7 @@ function Documents() {
               {
                 uploading
                 ? "Uploading..."
-                : "Upload"
+                : "Upload document"
               }
 
             </button>
@@ -326,9 +335,7 @@ function Documents() {
 
         <div className="list-heading">
 
-          <h2>
-            All Documents
-          </h2>
+          <div><p className="section-kicker">Document library</p><h2>All documents</h2></div>
 
           <span>
             {documents.length}
@@ -351,7 +358,7 @@ function Documents() {
           documents.length === 0 ?
 
           <p>
-            No documents found.
+            No documents yet. Upload the first file for one of your shipments.
           </p>
 
 

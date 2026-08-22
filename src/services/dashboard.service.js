@@ -1,12 +1,8 @@
 import axios from "axios";
-import { getRuntimeEnv } from "../config/runtimeEnv";
+import getEnv from "../runtimeEnv";
 
 const dashboardAPI = axios.create({
-<<<<<<< HEAD
-  baseURL: "/dashboard",
-=======
-  baseURL: getRuntimeEnv("VITE_DASHBOARD_URL", "http://localhost:5003/dashboard"),
->>>>>>> 865c419 (feat: add company admin onboarding and improve shipment workflows)
+  baseURL: getEnv("VITE_DASHBOARD_URL") || "/dashboard",
   headers: {
     "Content-Type": "application/json",
   },
@@ -18,10 +14,4 @@ dashboardAPI.interceptors.request.use((config) => {
   return config;
 });
 
-<<<<<<< HEAD
 export const getStatistics = () => dashboardAPI.get("/statistics");
-=======
-export const getStatistics = () => {
-  return dashboardAPI.get("/statistics");
-};
->>>>>>> 865c419 (feat: add company admin onboarding and improve shipment workflows)

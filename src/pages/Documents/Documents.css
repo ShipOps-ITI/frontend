@@ -7,12 +7,22 @@
 
 .documents-header {
   margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
 }
 
 
 .documents-header > div > p:last-child {
   color: #667085;
 }
+
+.documents-header button { white-space: nowrap; }
+.form-card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 22px; }
+.form-card-heading h2 { margin-bottom: 4px; }
+.form-card-heading p { color: #667085; }
+.section-kicker { margin: 0 0 4px; color: #147697; font-size: .72rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 
 
 /* =========================
@@ -250,5 +260,7 @@ button:not(.secondary-button):not(.danger-button) {
     justify-content:flex-start;
 
   }
+
+  .documents-header, .form-card-heading { align-items: stretch; flex-direction: column; }
 
 }

@@ -18,6 +18,7 @@ const emptyForm = {
 };
 
 const getErrorMessage = (error, fallback) => error.response?.data?.message || fallback;
+const formatRole = (role) => role?.split("_").map((word) => word.charAt(0) + word.slice(1).toLowerCase()).join(" ");
 
 function Users() {
   const currentUser = getUser();
@@ -28,6 +29,7 @@ function Users() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -61,6 +63,7 @@ function Users() {
     });
     setError("");
     setSuccess("");
+    setShowForm(true);
   }
 
   function handleChange(event) {
@@ -76,12 +79,14 @@ function Users() {
     setForm(emptyForm);
     setError("");
     setSuccess("");
+    setShowForm(false);
   }
 
   function startCreating() {
     setForm({ ...emptyForm, companyId: currentUser?.role === "COMPANY_ADMIN" ? String(currentUser.companyId ?? "") : "" });
     setError("");
     setSuccess("");
+    setShowForm(true);
   }
 
   async function handleSubmit(event) {
@@ -121,6 +126,7 @@ function Users() {
         setSuccess("Account created. The user can now sign in.");
       }
       setForm(emptyForm);
+      setShowForm(false);
       await loadData();
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Unable to update user."));
@@ -132,15 +138,14 @@ function Users() {
   return (
     <main className="users-page">
       <section className="users-header">
-        <p className="eyebrow">ShipOps Admin</p>
-        <h1>User management</h1>
-        <p>Assign roles and company access for your team.</p>
+        <div><p className="eyebrow">Workspace access</p><h1>User management</h1><p>Create accounts and control access for your operations team.</p></div>
+        {!showForm && <button type="button" onClick={startCreating}>Create user account</button>}
       </section>
 
-      <section className="users-card">
+      {showForm && <section className="users-card user-form-card">
         <div className="list-heading">
-          <h2>{form.id ? "Edit user access" : "Create team account"}</h2>
-          {!form.id && <button type="button" onClick={startCreating}>Add team member</button>}
+          <div><p className="section-kicker">{form.id ? "Account settings" : "New account"}</p><h2>{form.id ? "Edit user access" : "Create a user account"}</h2></div>
+          <button type="button" className="secondary-button" onClick={cancelEditing}>Close</button>
         </div>
         <form className="user-form" onSubmit={handleSubmit}>
           <label>Name<input name="name" value={form.name} onChange={handleChange} disabled={Boolean(form.id)} required /></label>
@@ -149,16 +154,20 @@ function Users() {
           <label>
             Role
             <select name="role" value={form.role} onChange={handleChange}>
-            {(form.id ? roles : (currentUser?.role === "ADMIN" ? ["COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"] : ["FLEET_MANAGER", "CUSTOMER"])).map((role) => <option key={role} value={role}>{role.replace("_", " ")}</option>)}
+            {(form.id ? roles : (currentUser?.role === "ADMIN" ? ["COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"] : ["FLEET_MANAGER", "CUSTOMER"])).map((role) => <option key={role} value={role}>{formatRole(role)}</option>)}
             </select>
+            <small>{form.role === "FLEET_MANAGER" ? "Can manage fleets, ships, and shipments." : form.role === "CUSTOMER" ? "Can view only shipments assigned to this account." : "Can manage the company workspace and its users."}</small>
           </label>
-          <label>
+          {currentUser?.role === "COMPANY_ADMIN" ? <label>
+            Company
+            <input value={companies.find((company) => company.id === Number(currentUser.companyId))?.name || "Your company"} disabled />
+          </label> : <label>
             Company {isCompanyRole(form.role) && <span>(required)</span>}
             <select name="companyId" value={form.companyId} onChange={handleChange} disabled={form.role === "ADMIN" || currentUser?.role === "COMPANY_ADMIN"} required={isCompanyRole(form.role)}>
               <option value="">{isCompanyRole(form.role) ? "Select a company" : "No company assignment"}</option>
               {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
             </select>
-          </label>
+          </label>}
           {form.id && <label className="active-toggle">
             <input name="isActive" type="checkbox" checked={form.isActive} onChange={handleChange} disabled={form.id === currentUser?.id} />
             Account is active
@@ -168,13 +177,13 @@ function Users() {
             <button type="button" className="secondary-button" onClick={cancelEditing}>Cancel</button>
           </div>
         </form>
-      </section>
+      </section>}
 
       {error && <p className="error-message">{error}</p>}
       {success && <p className="success-message">{success}</p>}
 
       <section className="users-card">
-        <div className="list-heading"><h2>All users</h2><span>{users.length}</span></div>
+        <div className="list-heading"><div><p className="section-kicker">Access directory</p><h2>Users</h2></div><span>{users.length}</span></div>
         {loading ? <p>Loading users...</p> : users.length === 0 ? <p>No users registered yet.</p> : (
           <div className="user-list">
             {users.map((user) => (
