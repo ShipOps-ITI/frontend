@@ -21,8 +21,6 @@ export const getShipment = (id) => shipmentAPI.get(`/${id}`);
 
 export const createShipment = (data) => shipmentAPI.post("/", data);
 
-export const updateShipment = (id, data) =>
-  shipmentAPI.put(`/${id}`, data);
+export const updateShipment = (id, data) => shipmentAPI.put(`/${id}`, data);
 
-export const deleteShipment = (id) =>
-  shipmentAPI.delete(`/${id}`);
+export const deleteShipment = (id) => shipmentAPI.delete(`/${id}`);

@@ -18,6 +18,9 @@ import FloatingAssistant from "./components/FloatingAssistant/FloatingAssistant"
 import Tracking from "./pages/Tracking/Tracking";
 import CompanyOnboarding from "./pages/Onboarding/CompanyOnboarding";
 
+import Subscription from "./pages/Subscription/Subscription";
+import PaymentSuccess from "./pages/PaymentSuccess/PaymentSuccess";
+
 function ProtectedLayout() {
   return <><Navbar /><Outlet /><FloatingAssistant /></>;
 }
@@ -31,6 +34,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
         </Route>
+        <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/onboarding/company" element={<CompanyOnboarding />} />
           <Route element={<CompanyOnboardingGate />}>
@@ -46,6 +50,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/chatbot" element={<Chatbot />} />
+            <Route path="/subscription" element={<Subscription />} />
             <Route path="/shipments/:id" element={<ShipmentDetails />} />
             <Route element={<CompanyAdminRoute />}>
               <Route path="/users" element={<Users />} />

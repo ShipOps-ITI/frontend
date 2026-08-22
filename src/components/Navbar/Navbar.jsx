@@ -32,15 +32,21 @@ function Navbar() {
             <NavLink to="/ships">Ships</NavLink><NavLink to="/shipments">Shipments</NavLink>
             <NavLink to="/tracking">Tracking</NavLink><NavLink to="/ports">Ports</NavLink><NavLink to="/users">Users</NavLink>
             <NavLink to="/dashboard">Dashboard</NavLink>
+            <NavLink to="/subscription">Subscription</NavLink>
+
           </>}
           {user?.role === "FLEET_MANAGER" && <>
             <NavLink to="/fleets">Fleets</NavLink><NavLink to="/ships">Ships</NavLink>
             <NavLink to="/shipments">Shipments</NavLink><NavLink to="/tracking">Tracking</NavLink><NavLink to="/ports">Ports</NavLink>
             <NavLink to="/dashboard">Dashboard</NavLink>
+            <NavLink to="/subscription">Subscription</NavLink>
+
           </>}
           {user?.role === "CUSTOMER" && <>
             <NavLink to="/shipments">My Shipments</NavLink><NavLink to="/documents">Documents</NavLink>
             <NavLink to="/dashboard">Customer Dashboard</NavLink>
+            <NavLink to="/subscription">Subscription</NavLink>
+
           </>}
           {user?.role !== "CUSTOMER" && <NavLink to="/documents">Documents</NavLink>}
         </div>

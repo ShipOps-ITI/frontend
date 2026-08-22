@@ -1,0 +1,10 @@
+.subscription-page { width: min(100% - 40px, 1020px); margin: 0 auto; padding: 48px 0 80px; }
+.subscription-hero { max-width: 650px; margin-bottom: 30px; }
+.subscription-hero p { color: var(--sea); font-size: .78rem; font-weight: 800; letter-spacing: .12em; margin: 0; }
+.subscription-hero h1 { color: var(--navy); margin: 8px 0; font-size: clamp(2rem, 4vw, 3.3rem); letter-spacing: -.045em; }
+.subscription-hero span { color: var(--muted); }
+.subscription-status { color: var(--muted); margin: 0 0 20px; }
+.plans-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.plan-card { position: relative; display: flex; flex-direction: column; gap: 16px; padding: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 10px 30px rgb(20 48 70 / 7%); }
+.plan-card h2, .plan-card p { margin: 0; }.plan-card > p:not(.price) { color: var(--muted); min-height: 44px; }.price { color: var(--navy); font-size: 2.4rem; font-weight: 750; }.price small { color: var(--muted); font-size: .85rem; font-weight: 500; }.featured { border: 2px solid var(--sea); }.plan-badge { position: absolute; top: -12px; right: 22px; padding: 5px 9px; border-radius: 99px; color: white; background: var(--sea); font-size: .68rem; font-weight: 800; letter-spacing: .08em; }.plan-card label { color: var(--muted); font-size: .85rem; font-weight: 650; }.plan-card input { width: 100%; padding: 10px 12px; border-radius: 8px; }.plan-card button { margin-top: auto; padding: 11px 14px; border: 0; color: white; cursor: pointer; }.text-button.cancel-plan { margin-top: 0; color: var(--danger); background: transparent !important; box-shadow: none; }button:disabled { cursor: not-allowed; opacity: .6; }
+@media (max-width: 640px) { .subscription-page { width: min(100% - 24px, 1020px); padding-top: 30px; }.plans-grid { grid-template-columns: 1fr; } }
