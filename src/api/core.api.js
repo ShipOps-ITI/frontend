@@ -1,8 +1,8 @@
 import axios from "axios";
-import { getRuntimeEnv } from "../config/runtimeEnv";
+import getEnv from "../runtimeEnv";
 
 const coreApi = axios.create({
-  baseURL: getRuntimeEnv("VITE_CORE_URL", "http://localhost:5002/api/v1"),
+  baseURL: getEnv("VITE_CORE_URL") || "/api/v1",
   headers: {
     "Content-Type": "application/json",
   },

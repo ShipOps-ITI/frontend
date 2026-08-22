@@ -101,6 +101,8 @@ function Shipments() {
   }, [loadShipments]);
 
   useEffect(() => {
+    if (!canManageShipments) return;
+
     async function loadReferences() {
       try {
         const [companyResponse, shipResponse, customerResponse] = await Promise.all([
@@ -116,7 +118,7 @@ function Shipments() {
       }
     }
     loadReferences();
-  }, []);
+  }, [canManageShipments]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {

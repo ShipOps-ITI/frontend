@@ -1,8 +1,8 @@
 import axios from "axios";
-import { getRuntimeEnv } from "../config/runtimeEnv";
+import getEnv from "../runtimeEnv";
 
 const chatAPI = axios.create({
-  baseURL: getRuntimeEnv("VITE_AI_URL", "http://localhost:5005/api/v1/ai"),
+  baseURL: getEnv("VITE_AI_URL") || "/api/v1/ai",
   headers: { "Content-Type": "application/json" },
 });
 

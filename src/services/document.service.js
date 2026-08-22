@@ -1,8 +1,8 @@
 import axios from "axios";
-import { getRuntimeEnv } from "../config/runtimeEnv";
+import getEnv from "../runtimeEnv";
 
 const documentAPI = axios.create({
-  baseURL: getRuntimeEnv("VITE_DOCUMENT_URL", "http://localhost:5003/documents"),
+  baseURL: getEnv("VITE_DOCUMENT_URL") || "/documents",
 });
 
 documentAPI.interceptors.request.use((config) => {
