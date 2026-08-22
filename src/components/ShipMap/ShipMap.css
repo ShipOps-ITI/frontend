@@ -14,6 +14,20 @@
   border-radius: 8px;
 }
 
+.ship-icon-wrapper { background: transparent; border: 0; }
+
+.ship-map-marker {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 3px 4px rgba(15, 44, 64, 0.36));
+  transform: translateZ(0);
+}
+
+.ship-map-marker svg { width: 100%; height: 100%; overflow: visible; }
+.ship-marker-hull { fill: var(--ship-color); stroke: #fff; stroke-width: 2.3; stroke-linejoin: round; }
+.ship-marker-deck { fill: none; stroke: rgba(255, 255, 255, 0.92); stroke-width: 2; stroke-linecap: round; }
+.ship-marker-shadow { fill: rgba(7, 89, 133, 0.2); }
+
 .map-empty-state {
   margin: 14px 0 0;
   color: #667085;

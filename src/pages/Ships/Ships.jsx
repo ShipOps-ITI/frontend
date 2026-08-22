@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import Pagination from "../../components/Pagination/Pagination";
-import ShipMap from "../../components/ShipMap/ShipMap";
 import { countries, getCountryFlagImageUrl } from "../../constants/countries";
 import { getCompanies } from "../../services/company.service";
 import { getFleetsByCompany } from "../../services/fleet.service";
@@ -136,7 +135,12 @@ function Ships() {
 
   function resetForm() {
     setForm(emptyForm);
-    setFleets([]);
+    // A Company Admin/Fleet Manager has one fixed company. Keep its already
+    // loaded fleets when opening the Ship form; clearing them leaves the
+    // dropdown empty because the company ID itself has not changed.
+    if (isAdmin) {
+      setFleets([]);
+    }
     setEditingId(null);
     setShowForm(false);
   }
@@ -295,8 +299,6 @@ function Ships() {
       </section>}
 
       {error && <p className="error-message">{error}</p>}
-
-      <ShipMap ships={ships} />
 
       <section className="ship-list-card">
         <div className="list-heading">

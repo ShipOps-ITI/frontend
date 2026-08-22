@@ -2,7 +2,7 @@ import { useState } from "react";
 import { askAssistant } from "../../services/chat.service";
 import "./Chatbot.css";
 
-function Chatbot() {
+function Chatbot({ floating = false, onClose }) {
   const [messages, setMessages] = useState([
     { id: 1, sender: "bot", text: "Hello! I'm your ShipOps assistant. Ask me about data you are allowed to access." },
   ]);
@@ -36,13 +36,14 @@ function Chatbot() {
   };
 
   return (
-    <div className="chatbot-page">
+    <div className={floating ? "chatbot-modal" : "chatbot-page"} role={floating ? "dialog" : undefined} aria-modal={floating || undefined} aria-label={floating ? "ShipOps AI assistant" : undefined}>
       <div className="chatbot-container">
         <header className="chatbot-header">
           <div className="bot-info">
             <div className="bot-avatar">🤖</div>
             <div><h2>AI Assistant</h2><span>Online</span></div>
           </div>
+          {floating && <button type="button" className="chatbot-close" onClick={onClose} aria-label="Close AI assistant">×</button>}
         </header>
 
         <main className="chatbot-messages">

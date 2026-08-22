@@ -14,9 +14,23 @@ export function AdminRoute() {
   return user?.role === "ADMIN" ? <Outlet /> : <Navigate to="/dashboard" replace />;
 }
 
-export function OperationsRoute() {
+export function CompanyAdminRoute() {
   const user = getUser();
-  return ["ADMIN", "FLEET_MANAGER"].includes(user?.role)
+  return ["ADMIN", "COMPANY_ADMIN"].includes(user?.role)
     ? <Outlet />
     : <Navigate to="/dashboard" replace />;
+}
+
+export function OperationsRoute() {
+  const user = getUser();
+  return ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(user?.role)
+    ? <Outlet />
+    : <Navigate to="/dashboard" replace />;
+}
+
+export function CompanyOnboardingGate() {
+  const user = getUser();
+  return user?.role === "COMPANY_ADMIN" && !user?.companyId
+    ? <Navigate to="/onboarding/company" replace />
+    : <Outlet />;
 }

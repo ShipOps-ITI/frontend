@@ -1,19 +1,26 @@
 import axios from "axios";
+import { getRuntimeEnv } from "../config/runtimeEnv";
 
 const documentAPI = axios.create({
-  baseURL: import.meta.env.VITE_DOCUMENT_URL || "http://localhost:5003",
+  baseURL: getRuntimeEnv("VITE_DOCUMENT_URL", "http://localhost:5003/documents"),
+});
+
+documentAPI.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 export const getDocuments = () => {
-  return documentAPI.get("/documents");
+  return documentAPI.get("/");
 };
 
 export const getDocument = (id) => {
-  return documentAPI.get(`/documents/${id}`);
+  return documentAPI.get(`/${id}`);
 };
 
 export const uploadDocument = (formData) => {
-  return documentAPI.post("/documents/upload", formData, {
+  return documentAPI.post("/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -21,11 +28,11 @@ export const uploadDocument = (formData) => {
 };
 
 export const downloadDocument = (id) => {
-  return documentAPI.get(`/documents/${id}/download`, {
+  return documentAPI.get(`/${id}/download`, {
     responseType: "blob",
   });
 };
 
 export const deleteDocument = (id) => {
-  return documentAPI.delete(`/documents/${id}`);
+  return documentAPI.delete(`/${id}`);
 };

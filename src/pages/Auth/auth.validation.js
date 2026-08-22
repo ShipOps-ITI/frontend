@@ -1,5 +1,7 @@
+import getEnv from "../../runtimeEnv";
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const REGISTRATION_ROLES = ["ADMIN", "FLEET_MANAGER", "CUSTOMER"];
+const REGISTRATION_ROLES = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"];
 
 export const validateRegister = ({ name, email, password, role }) => {
   const errors = {};
@@ -16,7 +18,7 @@ export const validateRegister = ({ name, email, password, role }) => {
     errors.password = "Password must be between 8 and 128 characters.";
   }
 
-  if (!REGISTRATION_ROLES.includes(role)) {
+    if (getEnv("VITE_ALLOW_TEST_ROLE_REGISTRATION") === "true" && !REGISTRATION_ROLES.includes(role)) {
     errors.role = "Choose a valid role.";
   }
 

@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "../../services/auth.service";
+import { login, register } from "../../services/auth.service";
 import { validateRegister } from "./auth.validation";
 import "./Auth.css";
+import getEnv from "../../runtimeEnv";
+
+const allowTestRoleRegistration = getEnv("VITE_ALLOW_TEST_ROLE_REGISTRATION") === "true";
 
 function Register() {
   const navigate = useNavigate();
@@ -10,7 +13,7 @@ function Register() {
     name: "",
     email: "",
     password: "",
-    role: "CUSTOMER",
+    role: "COMPANY_ADMIN",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
@@ -37,7 +40,13 @@ function Register() {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
       });
-      navigate("/login");
+      const session = await login({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
+      navigate(session.user.role === "COMPANY_ADMIN" && !session.user.companyId
+        ? "/onboarding/company"
+        : "/dashboard");
     } catch (error) {
       setMessage(error.response?.data?.error || error.message || "Registration failed");
     }
@@ -104,7 +113,7 @@ function Register() {
               {errors.password && <span id="password-error" className="field-error">{errors.password}</span>}
             </label>
 
-            <label>
+            {allowTestRoleRegistration && <label>
               Role
               <select
                 name="role"
@@ -114,11 +123,16 @@ function Register() {
                 aria-describedby={errors.role ? "role-error" : undefined}
               >
                 <option value="CUSTOMER">Customer</option>
+                <option value="COMPANY_ADMIN">Company Admin</option>
                 <option value="FLEET_MANAGER">Fleet Manager</option>
                 <option value="ADMIN">Admin</option>
               </select>
               {errors.role && <span id="role-error" className="field-error">{errors.role}</span>}
-            </label>
+            </label>}
+
+            {!allowTestRoleRegistration && (
+              <p className="auth-registration-note">Your account will be created as your company’s administrator.</p>
+            )}
 
             <button type="submit">Create account</button>
           </form>

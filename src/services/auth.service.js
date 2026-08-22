@@ -16,6 +16,14 @@ export const login = async (data) => {
     return response.data;
 };
 
+export const completeCompanyOnboarding = async (companyId) => {
+    const response = await api.post("/onboarding/company", { companyId });
+    const { accessToken, user } = response.data;
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("user", JSON.stringify(user));
+    return response.data;
+};
+
 export const logout = async () => {
     try {
         await api.post("/logout");

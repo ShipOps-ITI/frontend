@@ -1,14 +1,14 @@
 import axios from "axios";
+import { getRuntimeEnv } from "../config/runtimeEnv";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_AUTH_URL || "http://localhost:5001",
+    baseURL: getRuntimeEnv("VITE_AUTH_URL", "http://localhost:5001"),
     headers: {
         "Content-Type": "application/json",
     },
-    withCredentials: true, // Send cookies with requests
+    withCredentials: true,
 });
 
-// Add access token to every request
 api.interceptors.request.use((config) => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -17,7 +17,6 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle 401 and refresh token
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -31,8 +30,7 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                // Try to refresh the token
-                const refreshUrl = (import.meta.env.VITE_AUTH_URL || "http://localhost:5001").replace(/\/+$/, "") + "/refresh";
+                const refreshUrl = getRuntimeEnv("VITE_AUTH_URL", "http://localhost:5001").replace(/\/+$/, "") + "/refresh";
                 const response = await axios.post(
                     refreshUrl,
                     {},
@@ -42,11 +40,9 @@ api.interceptors.response.use(
                 const { accessToken } = response.data;
                 localStorage.setItem("accessToken", accessToken);
 
-                // Retry original request with new token
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return api(originalRequest);
             } catch (refreshError) {
-                // Refresh failed - redirect to login
                 localStorage.removeItem("accessToken");
                 window.location.href = "/login";
                 return Promise.reject(refreshError);

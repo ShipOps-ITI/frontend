@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
-import { AdminRoute, OperationsRoute, ProtectedRoute, PublicRoute } from "./components/RouteGuards";
+import { AdminRoute, CompanyAdminRoute, CompanyOnboardingGate, OperationsRoute, ProtectedRoute, PublicRoute } from "./components/RouteGuards";
 import Companies from "./pages/Companies/Companies";
 import Fleets from "./pages/Fleets/Fleets";
 import Ships from "./pages/Ships/Ships";
@@ -14,11 +14,15 @@ import Users from "./pages/Users/Users";
 import Ports from "./pages/Ports/Ports";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Chatbot from "./pages/Chatbot/Chatbot";
+import FloatingAssistant from "./components/FloatingAssistant/FloatingAssistant";
+import Tracking from "./pages/Tracking/Tracking";
+import CompanyOnboarding from "./pages/Onboarding/CompanyOnboarding";
+
 import Subscription from "./pages/Subscription/Subscription";
 import PaymentSuccess from "./pages/PaymentSuccess/PaymentSuccess";
 
 function ProtectedLayout() {
-  return <><Navbar /><Outlet /></>;
+  return <><Navbar /><Outlet /><FloatingAssistant /></>;
 }
 
 function App() {
@@ -32,10 +36,15 @@ function App() {
         </Route>
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding/company" element={<CompanyOnboarding />} />
+          <Route element={<CompanyOnboardingGate />}>
           <Route element={<ProtectedLayout />}>
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/fleets" element={<Fleets />} />
-            <Route path="/ships" element={<Ships />} />
+            <Route element={<OperationsRoute />}>
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/fleets" element={<Fleets />} />
+              <Route path="/ships" element={<Ships />} />
+              <Route path="/tracking" element={<Tracking />} />
+            </Route>
             <Route element={<OperationsRoute />}><Route path="/ports" element={<Ports />} /></Route>
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -43,10 +52,13 @@ function App() {
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/shipments/:id" element={<ShipmentDetails />} />
-            <Route element={<AdminRoute />}>
+            <Route element={<CompanyAdminRoute />}>
               <Route path="/users" element={<Users />} />
+            </Route>
+            <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>
+          </Route>
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

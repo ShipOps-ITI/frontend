@@ -6,11 +6,15 @@ import {
   downloadDocument,
 } from "../../services/document.service";
 import "./Documents.css";
+import { getUser } from "../../services/auth.service";
+import { getShipments } from "../../services/shipment.service";
 
 
 function Documents() {
+  const canManageDocuments = ["ADMIN", "FLEET_MANAGER"].includes(getUser()?.role);
 
   const [documents, setDocuments] = useState([]);
+  const [shipments, setShipments] = useState([]);
   const [file, setFile] = useState(null);
   const [type, setType] = useState("Invoice");
   const [shipmentId, setShipmentId] = useState("");
@@ -22,6 +26,7 @@ function Documents() {
 
   useEffect(() => {
     loadDocuments();
+    if (canManageDocuments) loadShipments();
   }, []);
 
 
@@ -46,6 +51,16 @@ function Documents() {
     }
   }
 
+  async function loadShipments() {
+    try {
+      const response = await getShipments({ page: 1, limit: 100 });
+      setShipments(Array.isArray(response.data?.data) ? response.data.data : []);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load shipments for document upload.");
+    }
+  }
+
 
   async function handleUpload(event) {
 
@@ -53,6 +68,11 @@ function Documents() {
 
     if (!file) {
       setError("Please select a file.");
+      return;
+    }
+
+    if (!shipmentId) {
+      setError("Please select the shipment this document belongs to.");
       return;
     }
 
@@ -67,9 +87,7 @@ function Documents() {
       formData.append("file", file);
       formData.append("type", type);
 
-      if (shipmentId) {
-        formData.append("shipment_id", shipmentId);
-      }
+      formData.append("shipment_id", shipmentId);
 
 
       await uploadDocument(formData);
@@ -188,7 +206,7 @@ function Documents() {
 
 
 
-      <section className="document-form-card">
+      {canManageDocuments && <section className="document-form-card">
 
         <h2>
           Upload Document
@@ -251,15 +269,22 @@ function Documents() {
 
           <label>
 
-            Shipment ID (optional)
+            Shipment
 
-            <input
-              type="number"
+            <select
               value={shipmentId}
               onChange={(e)=>
                 setShipmentId(e.target.value)
               }
-            />
+              required
+            >
+              <option value="">Select a shipment</option>
+              {shipments.map((shipment) => (
+                <option key={shipment.id} value={shipment.id}>
+                  {shipment.shipmentNumber} — {shipment.origin} to {shipment.destination}
+                </option>
+              ))}
+            </select>
 
           </label>
 
@@ -283,7 +308,7 @@ function Documents() {
         </form>
 
 
-      </section>
+      </section>}
 
 
 
@@ -384,14 +409,14 @@ function Documents() {
 
 
 
-                  <button
+                  {canManageDocuments && <button
                     className="danger-button"
                     onClick={() =>
                       handleDelete(doc.id)
                     }
                   >
                     Delete
-                  </button>
+                  </button>}
 
 
                 </div>

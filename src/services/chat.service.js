@@ -1,14 +1,15 @@
 import axios from "axios";
+import { getRuntimeEnv } from "../config/runtimeEnv";
 
-const chatApi = axios.create({
-  baseURL: import.meta.env.VITE_AI_URL || "http://localhost:5005/api/v1/ai",
+const chatAPI = axios.create({
+  baseURL: getRuntimeEnv("VITE_AI_URL", "http://localhost:5005/api/v1/ai"),
   headers: { "Content-Type": "application/json" },
 });
 
-chatApi.interceptors.request.use((config) => {
+chatAPI.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem("accessToken");
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
 
-export const askAssistant = (question) => chatApi.post("/chat", { question });
+export const askAssistant = (question) => chatAPI.post("/chat", { question });

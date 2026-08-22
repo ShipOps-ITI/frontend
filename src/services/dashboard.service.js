@@ -1,7 +1,8 @@
 import axios from "axios";
+import { getRuntimeEnv } from "../config/runtimeEnv";
 
 const dashboardAPI = axios.create({
-  baseURL: import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5003",
+  baseURL: getRuntimeEnv("VITE_DASHBOARD_URL", "http://localhost:5003/dashboard"),
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,5 +15,5 @@ dashboardAPI.interceptors.request.use((config) => {
 });
 
 export const getStatistics = () => {
-  return dashboardAPI.get("/dashboard/statistics");
+  return dashboardAPI.get("/statistics");
 };
