@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { countries } from "../../constants/countries";
 import { createCompany } from "../../services/company.service";
-import { completeCompanyOnboarding, logout } from "../../services/auth.service";
+import { completeCompanyOnboarding, getUser, logout } from "../../services/auth.service";
 import "../Auth/Auth.css";
 
 const emptyForm = { name: "", country: "", contactEmail: "", phone: "" };
@@ -10,7 +10,8 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function CompanyOnboarding() {
   const navigate = useNavigate();
-  const [form, setForm] = useState(emptyForm);
+  const currentUser = getUser();
+  const [form, setForm] = useState({ ...emptyForm, contactEmail: currentUser?.email || "" });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,7 +44,7 @@ export default function CompanyOnboarding() {
         phone: form.phone.trim() || undefined,
       });
       await completeCompanyOnboarding(response.data.data.id);
-      navigate("/dashboard", { replace: true });
+      navigate("/subscription", { replace: true });
     } catch (error) {
       setMessage(error.response?.data?.message || error.response?.data?.error || "Unable to create your company. Please try again.");
     } finally {
@@ -60,6 +61,7 @@ export default function CompanyOnboarding() {
     <main className="auth-page">
       <section className="auth-content">
         <div className="auth-card auth-card-register">
+          <div className="onboarding-steps" aria-label="Onboarding progress"><strong>1</strong><span>Company</span><i /><strong>2</strong><span>Plan</span><i /><strong>3</strong><span>Workspace</span></div>
           <p className="auth-kicker">Company setup</p>
           <h1>Create your company</h1>
           <p className="auth-subtitle">This company will be your ShipOps workspace. You can invite fleet managers and customers after setup.</p>
@@ -74,6 +76,14 @@ export default function CompanyOnboarding() {
           <button type="button" className="onboarding-signout" onClick={signOut}>Sign out</button>
         </div>
       </section>
+      <aside className="company-onboarding-visual">
+        <div>
+          <p>YOUR OPERATIONS HUB</p>
+          <h2>One workspace for every vessel movement.</h2>
+          <ul><li>Organize fleets and vessels by company</li><li>Assign shipments and documents securely</li><li>Monitor last-known vessel positions</li></ul>
+          <small>Next: choose a 30-day trial or annual access.</small>
+        </div>
+      </aside>
     </main>
   );
 }

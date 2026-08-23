@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { activateFreePlan, cancelSubscription, getSubscription, startPremiumCheckout } from "../../services/subscription.service";
+import { useNavigate } from "react-router-dom";
+import { activateTrial, cancelSubscription, getSubscription, startPremiumCheckout } from "../../services/subscription.service";
 import { getUser } from "../../services/auth.service";
 import "./Subscription.css";
 
 function Subscription() {
   const user = getUser();
+  const navigate = useNavigate();
   const [subscription, setSubscription] = useState(null);
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
@@ -13,9 +15,9 @@ function Subscription() {
   const reload = () => getSubscription().then(setSubscription).catch((err) => setError(err.response?.data?.error || "Could not load subscription"));
   useEffect(() => { reload(); }, []);
 
-  const selectFree = async () => {
+  const selectTrial = async () => {
     setLoading(true); setError("");
-    try { await activateFreePlan(); await reload(); } catch (err) { setError(err.response?.data?.error || "Could not activate Free"); } finally { setLoading(false); }
+    try { await activateTrial(); await reload(); navigate("/dashboard", { replace: true }); } catch (err) { setError(err.response?.data?.error || "Could not activate your trial"); } finally { setLoading(false); }
   };
   const selectPremium = async () => {
     if (!phone.trim()) return setError("Enter your phone number before checkout.");
@@ -32,12 +34,12 @@ function Subscription() {
   };
 
   return <main className="subscription-page">
-    <section className="subscription-hero"><p>SHIPOPS MEMBERSHIP</p><h1>Choose the plan that fits your operation.</h1><span>Premium renews monthly. You can cancel at any time.</span></section>
+    <section className="subscription-hero"><p>WORKSPACE ACCESS</p><h1>Start with a trial or subscribe yearly.</h1><span>Try every core ShipOps feature for 30 days, or activate annual access through secure Paymob checkout.</span></section>
     {error && <p className="error-message">{error}</p>}
     {subscription && <p className="subscription-status">Current plan: <strong>{subscription.plan}</strong> · {subscription.status}</p>}
     <section className="plans-grid">
-      <article className="plan-card"><h2>Free</h2><p className="price">$0 <small>/ month</small></p><p>Access to the core ShipOps workspace.</p><button className="secondary-button" disabled={loading || subscription?.plan === "FREE"} onClick={selectFree}>{subscription?.plan === "FREE" ? "Current plan" : "Choose Free"}</button></article>
-      <article className="plan-card featured"><span className="plan-badge">RECOMMENDED</span><h2>Premium</h2><p className="price">$100 <small>/ month</small></p><p>Recurring monthly subscription through a secure Paymob checkout.</p><label htmlFor="billing-phone">Phone number</label><input id="billing-phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+2010..." autoComplete="tel" /><button disabled={loading} onClick={selectPremium}>{subscription?.status === "PENDING" ? "Resume secure payment" : "Continue to secure payment"}</button>{subscription?.plan === "PREMIUM" && subscription?.status === "ACTIVE" && <button className="text-button cancel-plan" disabled={loading} onClick={cancel}>Cancel Premium</button>}</article>
+      <article className="plan-card"><span className="plan-label">EXPLORE</span><h2>30-day trial</h2><p className="price">$0 <small>for 30 days</small></p><ul><li>Fleet and vessel management</li><li>Shipments, ports, and documents</li><li>Tracking and operations dashboard</li></ul><button className="secondary-button" disabled={loading || !subscription?.trialAvailable || subscription?.plan === "TRIAL"} onClick={selectTrial}>{subscription?.plan === "TRIAL" ? "Trial active" : subscription?.trialAvailable ? "Start 30-day trial" : "Trial already used"}</button></article>
+      <article className="plan-card featured"><span className="plan-badge">FULL ACCESS</span><span className="plan-label">ANNUAL</span><h2>ShipOps yearly</h2><p className="price">$100 <small>/ year</small></p><ul><li>Continuous workspace access</li><li>Secure annual Paymob billing</li><li>Cancel before the next renewal</li></ul><label htmlFor="billing-phone">Billing phone number</label><input id="billing-phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+2010..." autoComplete="tel" /><button disabled={loading} onClick={selectPremium}>{subscription?.plan === "PREMIUM" && subscription?.status === "PENDING" ? "Resume secure payment" : "Continue to secure payment"}</button>{subscription?.plan === "PREMIUM" && subscription?.status === "ACTIVE" && <button className="text-button cancel-plan" disabled={loading} onClick={cancel}>Cancel annual plan</button>}</article>
     </section>
   </main>;
 }

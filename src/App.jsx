@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
-import { AdminRoute, CompanyAdminRoute, CompanyOnboardingGate, OperationsRoute, ProtectedRoute, PublicRoute } from "./components/RouteGuards";
+import { AdminRoute, CompanyAdminRoute, CompanyOnboardingGate, DocumentAccessRoute, OperationsRoute, ProtectedRoute, PublicRoute, SubscriptionGate } from "./components/RouteGuards";
 import Companies from "./pages/Companies/Companies";
 import Fleets from "./pages/Fleets/Fleets";
 import Ships from "./pages/Ships/Ships";
@@ -22,7 +23,15 @@ import Subscription from "./pages/Subscription/Subscription";
 import PaymentSuccess from "./pages/PaymentSuccess/PaymentSuccess";
 
 function ProtectedLayout() {
-  return <><Navbar /><Outlet /><FloatingAssistant /></>;
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  return (
+    <div className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}>
+      <Navbar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((value) => !value)} />
+      <div className="app-content"><Outlet /></div>
+      <FloatingAssistant />
+    </div>
+  );
 }
 
 function App() {
@@ -39,6 +48,8 @@ function App() {
           <Route path="/onboarding/company" element={<CompanyOnboarding />} />
           <Route element={<CompanyOnboardingGate />}>
           <Route element={<ProtectedLayout />}>
+            <Route path="/subscription" element={<Subscription />} />
+            <Route element={<SubscriptionGate />}>
             <Route element={<OperationsRoute />}>
               <Route path="/companies" element={<Companies />} />
               <Route path="/fleets" element={<Fleets />} />
@@ -48,15 +59,17 @@ function App() {
             <Route element={<OperationsRoute />}><Route path="/ports" element={<Ports />} /></Route>
             <Route path="/shipments" element={<Shipments />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/documents" element={<Documents />} />
+            <Route element={<DocumentAccessRoute />}>
+              <Route path="/documents" element={<Documents />} />
+            </Route>
             <Route path="/chatbot" element={<Chatbot />} />
-            <Route path="/subscription" element={<Subscription />} />
             <Route path="/shipments/:id" element={<ShipmentDetails />} />
             <Route element={<CompanyAdminRoute />}>
               <Route path="/users" element={<Users />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
             </Route>
           </Route>
           </Route>
