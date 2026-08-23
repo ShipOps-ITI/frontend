@@ -9,6 +9,9 @@
   transition: width .24s ease;
 }
 
+.navbar { cursor: pointer; }
+.navbar a, .navbar button { cursor: pointer; }
+
 .navbar-content {
   display: flex;
   height: 100%;
@@ -21,33 +24,22 @@
 .brand {
   display: flex;
   align-items: center;
+  width: fit-content;
+  padding: 0;
+  border: 0 !important;
+  appearance: none;
+  background: transparent !important;
+  box-shadow: none !important;
   color: #0f5f7c;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 1.28rem;
   font-weight: 800;
   text-decoration: none;
 }
 
-.sidebar-controls {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -12px;
-}
-
-.sidebar-toggle {
-  display: inline-grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border: 1px solid #d0deea;
-  border-radius: 8px;
-  color: #146c94;
-  background: #f8fbfd;
-  cursor: pointer;
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.sidebar-toggle:hover { background: #e0f2fe; }
+.brand:hover { color: #d4f2fb; }
+.brand:focus-visible { outline: 3px solid #8ee4fa; outline-offset: 5px; border-radius: 8px; }
 
 .brand-mark {
   display: inline-grid;
@@ -57,9 +49,11 @@
   place-items: center;
   border-radius: 9px;
   color: #6cd5f2;
-  background: rgb(103 202 230 / 13%);
+  background: #174d68;
   font-size: 1.05rem;
 }
+
+.brand:hover .brand-mark { background: #1d607d; }
 
 .nav-links {
   display: flex;
@@ -119,7 +113,6 @@
 .sidebar-collapsed .navbar-content { padding-inline: 10px; align-items: center; }
 .sidebar-collapsed .brand { max-width: 38px; overflow: hidden; }
 .sidebar-collapsed .brand-mark { flex: 0 0 30px; margin-right: 8px; }
-.sidebar-collapsed .sidebar-controls { width: 100%; justify-content: center; margin-top: -12px; }
 .sidebar-collapsed .nav-links { width: 100%; align-items: center; }
 .sidebar-collapsed .nav-links a {
   width: 100%;

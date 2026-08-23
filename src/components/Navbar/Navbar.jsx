@@ -36,21 +36,22 @@ function Navbar({ collapsed, onToggle }) {
     }
   };
 
+  const handleSidebarClick = (event) => {
+    if (event.target.closest("a, button")) return;
+    onToggle();
+  };
+
   return (
-    <aside className={`navbar${collapsed ? " is-collapsed" : ""}`}>
+    <aside className={`navbar${collapsed ? " is-collapsed" : ""}`} onClick={handleSidebarClick} title="Click empty sidebar space to collapse or expand">
       <nav className="navbar-content" aria-label="Main navigation">
-        <NavLink to={user?.role === "COMPANY_ADMIN" && !hasWorkspaceAccess ? "/subscription" : "/dashboard"} className="brand"><span className="brand-mark" aria-hidden="true">⚓</span>ShipOps</NavLink>
-        <div className="sidebar-controls">
-          <button
-            className="sidebar-toggle"
-            type="button"
-            onClick={onToggle}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? "›" : "‹"}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="brand"
+          onClick={onToggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        ><span className="brand-mark" aria-hidden="true">⚓</span>ShipOps</button>
         <div className="nav-links">
           {hasWorkspaceAccess && ["ADMIN", "COMPANY_ADMIN"].includes(user?.role) && <>
             <NavLink to="/companies">Companies</NavLink><NavLink to="/fleets">Fleets</NavLink>

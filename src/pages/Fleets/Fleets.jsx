@@ -112,7 +112,7 @@ function Fleets() {
   async function handleDelete(fleet) {
     const shipCount = fleet._count?.ships || 0;
     if (shipCount > 0) {
-      setError(`Move or delete the ${shipCount} ship(s) in ${fleet.name} before deleting this fleet.`);
+      setError(`This fleet has ${shipCount} ship record(s). Delete the ship records first before deleting this fleet.`);
       return;
     }
 

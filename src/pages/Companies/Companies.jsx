@@ -62,6 +62,7 @@ function getServerFieldErrors(requestError) {
 function Companies() {
   const user = getUser();
   const isAdmin = user?.role === "ADMIN";
+  const canEditCompany = ["ADMIN", "COMPANY_ADMIN"].includes(user?.role);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
@@ -195,7 +196,7 @@ function Companies() {
         </div>
       </section>
 
-      {isAdmin && showForm && <section className="company-form-card">
+      {canEditCompany && showForm && <section className="company-form-card">
         <h2>{editingId ? "Edit company" : "Add company"}</h2>
 
         <form onSubmit={handleSubmit} className="company-form" noValidate>
@@ -296,13 +297,13 @@ function Companies() {
                   <p>{company.country} · {company.contactEmail}</p>
                   {company.phone && <p>{company.phone}</p>}
                 </div>
-                {isAdmin && <div className="row-actions">
+                {canEditCompany && <div className="row-actions">
                   <button type="button" className="secondary-button" onClick={() => handleEdit(company)}>
                     Edit
                   </button>
-                  <button type="button" className="danger-button" onClick={() => handleDelete(company)}>
+                  {isAdmin && <button type="button" className="danger-button" onClick={() => handleDelete(company)}>
                     Delete
-                  </button>
+                  </button>}
                 </div>}
               </article>
             ))}

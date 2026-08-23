@@ -2,10 +2,12 @@ import { useState } from "react";
 import { askAssistant } from "../../services/chat.service";
 import "./Chatbot.css";
 
-function Chatbot({ floating = false, onClose }) {
-  const [messages, setMessages] = useState([
-    { id: 1, sender: "bot", text: "Hello! I'm your ShipOps assistant. Ask me about data you are allowed to access." },
+function Chatbot({ floating = false, onClose, messages: externalMessages, setMessages: setExternalMessages }) {
+  const [internalMessages, setInternalMessages] = useState([
+    { id: 1, sender: "bot", text: "Hello! I can answer general maritime questions and questions about ShipOps data you are allowed to access." },
   ]);
+  const messages = externalMessages ?? internalMessages;
+  const setMessages = setExternalMessages ?? setInternalMessages;
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
 
@@ -43,7 +45,7 @@ function Chatbot({ floating = false, onClose }) {
             <div className="bot-avatar">🤖</div>
             <div><h2>AI Assistant</h2><span>Online</span></div>
           </div>
-          {floating && <button type="button" className="chatbot-close" onClick={onClose} aria-label="Close AI assistant">×</button>}
+          {floating && <button type="button" className="chatbot-close" onClick={onClose} aria-label="Collapse AI assistant" title="Collapse assistant">−</button>}
         </header>
 
         <main className="chatbot-messages">
@@ -59,7 +61,7 @@ function Chatbot({ floating = false, onClose }) {
         <div className="chatbot-input-container">
           <input
             type="text"
-            placeholder="Ask about shipments, ships, fleets, ports, or companies..."
+            placeholder="Ask about ShipOps or general maritime logistics..."
             value={input}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && sendMessage()}
