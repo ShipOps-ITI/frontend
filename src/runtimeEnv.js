@@ -4,7 +4,7 @@ export function getEnv(key) {
     if (typeof window !== 'undefined' && window._env && window._env[key] !== undefined) {
       return window._env[key];
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return import.meta.env[key];

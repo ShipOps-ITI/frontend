@@ -96,7 +96,6 @@ function Shipments() {
       await loadShipments();
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchShipments();
   }, [loadShipments]);
 

@@ -26,13 +26,17 @@ function Tracking() {
   }, []);
 
   useEffect(() => {
-    loadLocations(true);
+    const initialLoad = setTimeout(() => loadLocations(true), 0);
     const timer = setInterval(() => loadLocations(), 30_000);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(timer);
+    };
   }, [loadLocations]);
 
   const liveShips = ships.filter((ship) => Number.isFinite(ship.currentLatitude) && Number.isFinite(ship.currentLongitude));
-  const staleShips = liveShips.filter((ship) => !ship.lastAisUpdateAt || Date.now() - new Date(ship.lastAisUpdateAt).getTime() > 10 * 60 * 1000);
+  const refreshedAt = updatedAt?.getTime() || 0;
+  const staleShips = liveShips.filter((ship) => !ship.lastAisUpdateAt || refreshedAt - new Date(ship.lastAisUpdateAt).getTime() > 10 * 60 * 1000);
 
   return (
     <main className="tracking-page">

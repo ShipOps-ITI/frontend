@@ -28,7 +28,7 @@ function Documents() {
   useEffect(() => {
     loadDocuments();
     if (canManageDocuments) loadShipments();
-  }, []);
+  }, [canManageDocuments]);
 
 
   async function loadDocuments() {
@@ -136,7 +136,7 @@ function Documents() {
 
       await loadDocuments();
 
-    } catch (err) {
+    } catch {
 
       setError("Unable to delete document.");
 
@@ -171,7 +171,7 @@ function Documents() {
       window.URL.revokeObjectURL(url);
 
 
-    } catch (err) {
+    } catch {
 
       setError("Unable to download document.");
 

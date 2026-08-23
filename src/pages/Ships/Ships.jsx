@@ -85,7 +85,6 @@ function Ships() {
 
   useEffect(() => {
     const companyId = Number(isAdmin ? form.companyId : loggedInUser?.companyId);
-    setFleets([]);
     if (Number.isInteger(companyId) && companyId > 0) loadFleets(companyId);
   }, [form.companyId, isAdmin, loggedInUser?.companyId]);
 

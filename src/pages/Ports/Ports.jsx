@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Pagination from "../../components/Pagination/Pagination";
 import { countries } from "../../constants/countries";
 import { getUser } from "../../services/auth.service";
@@ -20,9 +20,7 @@ function Ports() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => { loadPorts(); }, []);
-
-  async function loadPorts(page = 1) {
+  const loadPorts = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       setError("");
@@ -34,7 +32,12 @@ function Ports() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [search]);
+
+  useEffect(() => {
+    const initialLoad = setTimeout(() => loadPorts(), 0);
+    return () => clearTimeout(initialLoad);
+  }, [loadPorts]);
 
   function handleChange(event) {
     const { name, value } = event.target;
