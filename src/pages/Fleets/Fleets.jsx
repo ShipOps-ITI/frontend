@@ -7,11 +7,13 @@ import {
   updateFleet,
 } from "../../services/fleet.service";
 import { getUser } from "../../services/auth.service";
+import { getUsers } from "../../services/users.service";
 import Pagination from "../../components/Pagination/Pagination";
 import "./Fleets.css";
 
 const emptyForm = {
   companyId: "",
+  managedByUserId: "",
   name: "",
   description: "",
 };
@@ -24,8 +26,10 @@ function getErrorMessage(requestError, fallbackMessage) {
 function Fleets() {
   const loggedInUser = getUser();
   const isAdmin = loggedInUser?.role === "ADMIN";
+  const canManageFleetStructure = ["ADMIN", "COMPANY_ADMIN"].includes(loggedInUser?.role);
   const [fleets, setFleets] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const [fleetManagers, setFleetManagers] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,25 +37,29 @@ function Fleets() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
-
-  useEffect(() => {
-    loadPageData();
-  }, []);
+  const selectedCompanyId = Number(isAdmin ? form.companyId : loggedInUser?.companyId);
+  const availableFleetManagers = fleetManagers.filter((manager) => manager.companyId === selectedCompanyId);
 
   async function loadPageData(page = 1) {
     try {
       setLoading(true);
       setError("");
-      const [fleetResponse, companyResponse] = await Promise.all([getFleets(page), getCompanies(1, 100)]);
+      const [fleetResponse, companyResponse, usersResponse] = await Promise.all([getFleets(page), getCompanies(1, 100), getUsers()]);
       setFleets(fleetResponse.data.data);
       setPagination(fleetResponse.data.pagination);
       setCompanies(companyResponse.data.data);
+      setFleetManagers((usersResponse.data || []).filter((user) => user.role === "FLEET_MANAGER" && user.isActive));
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Unable to load fleets."));
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void loadPageData(); }, 0);
+    return () => window.clearTimeout(initialLoad);
+  }, []);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -80,10 +88,12 @@ function Fleets() {
         await updateFleet(editingId, {
           name: form.name,
           description: form.description || undefined,
+          ...(canManageFleetStructure && form.managedByUserId ? { managedByUserId: Number(form.managedByUserId) } : {}),
         });
       } else {
         await createFleet({
           ...(isAdmin ? { companyId: Number(form.companyId) } : {}),
+          ...(form.managedByUserId ? { managedByUserId: Number(form.managedByUserId) } : {}),
           name: form.name,
           description: form.description || undefined,
         });
@@ -101,6 +111,7 @@ function Fleets() {
   function handleEdit(fleet) {
     setForm({
       companyId: fleet.companyId,
+      managedByUserId: fleet.managedByUserId || "",
       name: fleet.name,
       description: fleet.description || "",
     });
@@ -142,13 +153,12 @@ function Fleets() {
           <h1>Fleets</h1>
           <p>Group ships into fleets owned by your companies.</p>
         </div>
+        {canManageFleetStructure && <button type="button" className="add-fleet-button" onClick={() => { resetForm(); setShowForm(true); }}>Add new fleet</button>}
       </section>
 
-      {showForm && <section className="fleet-form-card">
-        <h2>{editingId ? "Edit fleet" : "Add fleet"}</h2>
-        {!editingId && companies.length === 0 && !loading && (
-          <p className="form-note">Create a company before adding a fleet.</p>
-        )}
+      {showForm && <div className="fleet-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) resetForm(); }}>
+        <section className="fleet-form-card fleet-modal" role="dialog" aria-modal="true" aria-labelledby="fleet-form-title">
+          <div className="fleet-modal-heading"><div><h2 id="fleet-form-title">{editingId ? "Edit fleet" : "Add fleet"}</h2>{!editingId && companies.length === 0 && !loading ? <p className="form-note">Create a company before adding a fleet.</p> : <p className="form-note">Set up a fleet and optionally assign its responsible Fleet Manager.</p>}</div><button type="button" className="modal-close" onClick={resetForm} aria-label="Close fleet form">×</button></div>
 
         <form onSubmit={handleSubmit} className="fleet-form">
           {isAdmin ? (
@@ -173,6 +183,17 @@ function Fleets() {
             <input name="name" value={form.name} onChange={handleChange} minLength="2" required />
           </label>
 
+          {canManageFleetStructure && <label>
+            Fleet Manager <span>(optional)</span>
+            <select name="managedByUserId" value={form.managedByUserId} onChange={handleChange}>
+              <option value="">{editingId ? "Keep the current assignment" : "Assign myself temporarily"}</option>
+              {availableFleetManagers.map((manager) => (
+                <option key={manager.id} value={manager.id}>{manager.name} ({manager.email})</option>
+              ))}
+            </select>
+            <small>Only an active Fleet Manager from this company can be assigned.</small>
+          </label>}
+
           <label className="full-width">
             Description <span>(optional)</span>
             <textarea name="description" value={form.description} onChange={handleChange} rows="3" />
@@ -182,10 +203,11 @@ function Fleets() {
             <button type="submit" disabled={submitting || (isAdmin ? !form.companyId : !loggedInUser?.companyId)}>
               {submitting ? "Saving..." : editingId ? "Save changes" : "Add fleet"}
             </button>
-            {editingId && <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>}
+            <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>
           </div>
         </form>
-      </section>}
+        </section>
+      </div>}
 
       {error && <p className="error-message">{error}</p>}
 
@@ -195,7 +217,6 @@ function Fleets() {
             <h2>All fleets</h2>
             <span>{pagination?.total || 0}</span>
           </div>
-          <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new fleet</button>
         </div>
 
         {loading ? <p>Loading fleets...</p> : fleets.length === 0 ? <p>No fleets yet.</p> : (
@@ -205,11 +226,12 @@ function Fleets() {
                 <div>
                   <h3>{fleet.name}</h3>
                   <p>{fleet.company?.name || "Unknown company"}</p>
+                  <p>Manager: {fleetManagers.find((manager) => manager.id === fleet.managedByUserId)?.name || (fleet.managedByUserId === loggedInUser?.id ? "You" : "Not assigned")}</p>
                   {fleet.description && <p>{fleet.description}</p>}
                 </div>
                 <div className="row-actions">
                   <button type="button" className="secondary-button" onClick={() => handleEdit(fleet)}>Edit</button>
-                  <button type="button" className="danger-button" onClick={() => handleDelete(fleet)}>Delete</button>
+                  {canManageFleetStructure && <button type="button" className="danger-button" onClick={() => handleDelete(fleet)}>Delete</button>}
                 </div>
               </article>
             ))}

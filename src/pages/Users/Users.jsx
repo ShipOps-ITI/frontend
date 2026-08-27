@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUser } from "../../services/auth.service";
 import { getCompanies } from "../../services/company.service";
-import { createUser, getUsers, updateUser } from "../../services/users.service";
+import { createUser, deleteUser, getUsers, updateUser } from "../../services/users.service";
 import "./Users.css";
 
 const roles = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"];
@@ -135,6 +135,24 @@ function Users() {
     }
   }
 
+  async function handleDelete(user) {
+    if (user.id === currentUser?.id) {
+      setError("You cannot delete your own account.");
+      return;
+    }
+    if (!window.confirm(`Delete ${user.name}'s account? This cannot be undone.`)) return;
+
+    try {
+      setError("");
+      setSuccess("");
+      await deleteUser(user.id);
+      setSuccess(`${user.name}'s account was deleted.`);
+      await loadData();
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, "Unable to delete user."));
+    }
+  }
+
   return (
     <main className="users-page">
       <section className="users-header">
@@ -142,12 +160,20 @@ function Users() {
         {!showForm && <button type="button" onClick={startCreating}>Create user account</button>}
       </section>
 
-      {showForm && <section className="users-card user-form-card">
-        <div className="list-heading">
-          <div><p className="section-kicker">{form.id ? "Account settings" : "New account"}</p><h2>{form.id ? "Edit user access" : "Create a user account"}</h2></div>
-          <button type="button" className="secondary-button" onClick={cancelEditing}>Close</button>
-        </div>
-        <form className="user-form" onSubmit={handleSubmit}>
+      {showForm && <div
+        className="user-modal-backdrop"
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) cancelEditing();
+        }}
+      >
+        <section className="users-card user-form-card user-modal" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
+          <div className="list-heading user-modal-heading">
+            <div><p className="section-kicker">{form.id ? "Account settings" : "New account"}</p><h2 id="user-modal-title">{form.id ? "Edit user access" : "Create a user account"}</h2></div>
+            <button type="button" className="user-modal-close" onClick={cancelEditing} aria-label="Close user form">×</button>
+          </div>
+          {error && <p className="error-message">{error}</p>}
+          <form className="user-form" onSubmit={handleSubmit}>
           <label>Name<input name="name" value={form.name} onChange={handleChange} disabled={Boolean(form.id)} required /></label>
           <label>Email<input name="email" type="email" value={form.email} onChange={handleChange} disabled={Boolean(form.id)} required /></label>
           {!form.id && <label>Password<input name="password" type="password" value={form.password} onChange={handleChange} minLength="8" required /></label>}
@@ -176,10 +202,11 @@ function Users() {
             <button type="submit" disabled={saving}>{saving ? "Saving..." : form.id ? "Save access" : "Create account"}</button>
             <button type="button" className="secondary-button" onClick={cancelEditing}>Cancel</button>
           </div>
-        </form>
-      </section>}
+          </form>
+        </section>
+      </div>}
 
-      {error && <p className="error-message">{error}</p>}
+      {error && !showForm && <p className="error-message">{error}</p>}
       {success && <p className="success-message">{success}</p>}
 
       <section className="users-card">
@@ -193,7 +220,10 @@ function Users() {
                   <p>{user.email}</p>
                   <p>{user.role.replace("_", " ")} · {user.companyId ? companies.find((company) => company.id === user.companyId)?.name || `Company #${user.companyId}` : "No company assignment"}</p>
                 </div>
-                <button type="button" className="secondary-button" onClick={() => startEditing(user)}>Manage</button>
+                <div className="user-row-actions">
+                  <button type="button" className="secondary-button" onClick={() => startEditing(user)}>Manage</button>
+                  {currentUser?.role === "ADMIN" && user.id !== currentUser.id && <button type="button" className="danger-button" onClick={() => handleDelete(user)}>Delete</button>}
+                </div>
               </article>
             ))}
           </div>

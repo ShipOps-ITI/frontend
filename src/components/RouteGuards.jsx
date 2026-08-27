@@ -39,7 +39,7 @@ export function CompanyOnboardingGate() {
 
 export function DocumentAccessRoute() {
   const user = getUser();
-  return ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(user?.role)
+  return ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"].includes(user?.role)
     ? <Outlet />
     : <Navigate to="/dashboard" replace />;
 }

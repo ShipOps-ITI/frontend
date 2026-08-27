@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getShipment } from "../../services/shipment.service";
 import "./ShipmentDetails.css";
 import {
@@ -14,12 +14,16 @@ import Pagination from "../../components/Pagination/Pagination";
 function ShipmentDetails() {
 
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [shipment, setShipment] = useState(null);
   const [error, setError] = useState("");
 
   const [editingCargoId, setEditingCargoId] = useState(null);
-  const [isCreatingCargo, setIsCreatingCargo] = useState(false);
+  const [isCreatingCargo, setIsCreatingCargo] = useState(
+    () => searchParams.get("addCargo") === "1",
+  );
 
   const [cargoList, setCargoList] = useState([]);
   const [cargoFilters, setCargoFilters] = useState({
@@ -30,16 +34,16 @@ function ShipmentDetails() {
   });
   const [cargoPagination, setCargoPagination] = useState(null);
 
-  const [cargoForm, setCargoForm] = useState({
-    shipmentId: "",
+  const [cargoForm, setCargoForm] = useState(() => ({
+    shipmentId: searchParams.get("addCargo") === "1" ? id : "",
     cargoName: "",
     cargoType: "",
     weight: "",
     quantity: "",
     containerNumber: "",
     description: "",
-    status: ""
-  });
+    status: "Pending"
+  }));
 
 
 
@@ -119,7 +123,7 @@ function handleAddCargo() {
     quantity: "",
     containerNumber: "",
     description: "",
-    status: ""
+    status: "Pending"
   });
 }
 
@@ -179,8 +183,18 @@ function resetCargoForm() {
     quantity: "",
     containerNumber: "",
     description: "",
-    status: ""
+    status: "Pending"
   });
+}
+
+function closeCargoModal() {
+  setEditingCargoId(null);
+  setIsCreatingCargo(false);
+  resetCargoForm();
+
+  if (searchParams.get("addCargo") === "1") {
+    setSearchParams({}, { replace: true });
+  }
 }
 
 async function handleCargoUpdate(event) {
@@ -201,9 +215,7 @@ async function handleCargoUpdate(event) {
     }
 
     await loadCargo();
-    setEditingCargoId(null);
-    setIsCreatingCargo(false);
-    resetCargoForm();
+    closeCargoModal();
   } catch (error) {
     setError(
       error.response?.data?.message ||
@@ -418,91 +430,75 @@ async function handleCargoUpdate(event) {
           </div>
         </div>
 
-        {cargoList.length === 0 && !isCreatingCargo && (
+        {cargoList.length === 0 && !(isCreatingCargo || editingCargoId) && (
           <p className="no-results">
             No cargo found for this shipment.
           </p>
         )}
 
         {(editingCargoId || isCreatingCargo) && (
-          <section className="shipment-details-card cargo-form-card">
-            <h2>{editingCargoId ? "Edit Cargo" : "Add Cargo"}</h2>
+          <div
+            className="cargo-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) closeCargoModal();
+            }}
+          >
+            <section
+              className="shipment-details-card cargo-form-card cargo-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="cargo-modal-title"
+            >
+              <div className="cargo-form-heading cargo-modal-heading">
+                <div>
+                  <p className="panel-kicker">Cargo item</p>
+                  <h2 id="cargo-modal-title">{editingCargoId ? "Edit cargo item" : "Add cargo item"}</h2>
+                  <p>Describe the goods being carried. Weight is recorded in kilograms.</p>
+                </div>
+                <button
+                  type="button"
+                  className="cargo-modal-close"
+                  onClick={closeCargoModal}
+                  aria-label="Close cargo form"
+                >
+                  ×
+                </button>
+              </div>
             <form className="cargo-form" onSubmit={handleCargoUpdate}>
-              <input
-                name="cargoName"
-                value={cargoForm.cargoName}
-                onChange={handleCargoChange}
-                placeholder="Cargo name"
-              />
+              <p className="cargo-form-section">Cargo details</p>
+              <label>Goods description<input name="cargoName" value={cargoForm.cargoName} onChange={handleCargoChange} placeholder="e.g. Roasted coffee beans" required /></label>
 
-              <input
-                name="cargoType"
-                value={cargoForm.cargoType}
-                onChange={handleCargoChange}
-                placeholder="Cargo type"
-              />
+              <label>Cargo type<select name="cargoType" value={cargoForm.cargoType} onChange={handleCargoChange} required><option value="">Select a cargo type</option><option value="General cargo">General cargo</option><option value="Containerized">Containerized</option><option value="Bulk">Bulk</option><option value="Refrigerated">Refrigerated</option><option value="Dangerous goods">Dangerous goods</option><option value="Other">Other</option></select></label>
 
-              <input
-                type="number"
-                name="weight"
-                value={cargoForm.weight}
-                onChange={handleCargoChange}
-                placeholder="Weight"
-              />
+              <div className="cargo-form-row"><label>Gross weight <span>(kg)</span><input type="number" min="0.01" step="0.01" name="weight" value={cargoForm.weight} onChange={handleCargoChange} placeholder="e.g. 1250" required /></label>
 
-              <input
-                type="number"
-                name="quantity"
-                value={cargoForm.quantity}
-                onChange={handleCargoChange}
-                placeholder="Quantity"
-              />
+                <label>Package quantity<input type="number" min="1" step="1" name="quantity" value={cargoForm.quantity} onChange={handleCargoChange} placeholder="e.g. 24" required /></label></div>
 
-              <input
-                name="containerNumber"
-                value={cargoForm.containerNumber}
-                onChange={handleCargoChange}
-                placeholder="Container number"
-              />
+              <label className="cargo-description">Handling notes <span>(optional)</span><textarea name="description" value={cargoForm.description} onChange={handleCargoChange} placeholder="Packaging, handling, temperature, or other useful instructions" /></label>
 
-              <textarea
-                name="description"
-                value={cargoForm.description}
-                onChange={handleCargoChange}
-                placeholder="Description"
-              />
-
-              <select
-                name="status"
-                value={cargoForm.status}
-                onChange={handleCargoChange}
-              >
-                <option value="" disabled>
-                  Select status
-                </option>
+              <p className="cargo-form-section">Operational status</p>
+              <label>Status<select name="status" value={cargoForm.status} onChange={handleCargoChange}>
                 <option value="Pending">Pending</option>
                 <option value="Loaded">Loaded</option>
                 <option value="InTransit">In Transit</option>
                 <option value="Delivered">Delivered</option>
                 <option value="Damaged">Damaged</option>
-              </select>
+              </select></label>
 
               <div className="form-actions">
                 <button type="submit">Save</button>
                 <button
                   type="button"
                   className="secondary-button"
-                  onClick={() => {
-                    setEditingCargoId(null);
-                    setIsCreatingCargo(false);
-                    resetCargoForm();
-                  }}
+                  onClick={closeCargoModal}
                 >
                   Cancel
                 </button>
               </div>
             </form>
-          </section>
+            </section>
+          </div>
         )}
 
         {cargoList.length > 0 && (
@@ -529,7 +525,6 @@ async function handleCargoUpdate(event) {
                   <p>Type: {cargo.cargoType}</p>
                   <p>Weight: {cargo.weight}</p>
                   <p>Quantity: {cargo.quantity}</p>
-                  <p>Container Number: {cargo.containerNumber}</p>
                   <p>Description: {cargo.description}</p>
                   <p>Status: <strong>{cargo.status}</strong></p>
                   <p className="cargo-date">
@@ -542,6 +537,15 @@ async function handleCargoUpdate(event) {
           </>
         )}
 
+      </section>
+
+      <section className="shipment-details-card shipment-documents-card">
+        <div>
+          <p className="panel-kicker">Shipment file room</p>
+          <h2>Documents</h2>
+          <p>Keep invoices, packing lists, bills of lading, and customs files connected to this shipment.</p>
+        </div>
+        <button type="button" onClick={() => navigate(`/documents?shipmentId=${id}`)}>Manage shipment documents</button>
       </section>
 
     </main>

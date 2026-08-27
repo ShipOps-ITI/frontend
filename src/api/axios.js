@@ -1,5 +1,6 @@
 import axios from "axios";
 import getEnv from "../runtimeEnv";
+import { showToast } from "../components/Toast/toast";
 
 const api = axios.create({
     baseURL: getEnv("VITE_AUTH_URL") || "/auth",
@@ -18,7 +19,12 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Authentication requests include login, logout, token refresh, onboarding,
+        // and payment flows. They must not create generic CRUD success notifications.
+        // Feature services show a toast only for their own create/update/delete actions.
+        return response;
+    },
     async (error) => {
         const originalRequest = error.config;
         const authEndpoints = ["/login", "/register", "/refresh"];
@@ -50,6 +56,7 @@ api.interceptors.response.use(
             }
         }
 
+        if (error.response?.status !== 401) showToast(error.response?.data?.message || error.response?.data?.error || "The operation could not be completed.", "error");
         return Promise.reject(error);
     }
 );

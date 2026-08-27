@@ -7,6 +7,8 @@ export const getShip = (id) => coreApi.get(`/ships/${id}`);
 
 export const getShipsByCompany = (companyId) => coreApi.get(`/ships/company/${companyId}`);
 
+export const getTrackingHealth = () => coreApi.get("/tracking/health");
+
 export const createShip = (data) => coreApi.post("/ships", data);
 
 export const updateShip = (id, data) => coreApi.put(`/ships/${id}`, data);

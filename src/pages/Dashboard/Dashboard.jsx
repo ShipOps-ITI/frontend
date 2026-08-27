@@ -13,6 +13,9 @@ import {
   YAxis,
 } from "recharts";
 import { getStatistics } from "../../services/dashboard.service";
+import { getUser } from "../../services/auth.service";
+import { getCargo } from "../../services/cargo.service";
+import { getDocuments } from "../../services/document.service";
 import "./Dashboard.css";
 
 const STATUS_COLORS = {
@@ -34,8 +37,16 @@ function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [shipmentReadiness, setShipmentReadiness] = useState([]);
+  const user = getUser();
+  const canViewShipments = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER", "CUSTOMER"].includes(user?.role);
+  const canViewShips = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(user?.role);
+  const canManageReadiness = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(user?.role);
 
-  useEffect(() => { loadStatistics(); }, []);
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => { void loadStatistics(); }, 0);
+    return () => window.clearTimeout(initialLoad);
+  }, []);
 
   async function loadStatistics(manual = false) {
     try {
@@ -43,6 +54,22 @@ function Dashboard() {
       setError("");
       const response = await getStatistics();
       setStats(response.data);
+      if (canManageReadiness) {
+        const latestShipments = (response.data?.latestShipments ?? []).slice(0, 4);
+        const documentsResponse = await getDocuments().catch(() => ({ data: [] }));
+        const documents = Array.isArray(documentsResponse.data) ? documentsResponse.data : [];
+        const readiness = await Promise.all(latestShipments.map(async (shipment) => {
+          const cargoResponse = await getCargo({ shipmentId: shipment.id, page: 1, limit: 1 }).catch(() => ({ data: { pagination: { total: 0 } } }));
+          const cargoCount = Number(cargoResponse.data?.pagination?.total ?? 0);
+          const documentCount = documents.filter((document) => Number(document.shipment_id ?? document.shipmentId) === Number(shipment.id)).length;
+          const hasRoute = Boolean(shipment.origin && shipment.destination && (shipment.ship_id ?? shipment.shipId));
+          const completed = Number(hasRoute) + Number(cargoCount > 0) + Number(documentCount > 0);
+          return { id: shipment.id, shipmentNumber: shipment.shipmentNumber ?? shipment.id, completed, cargoCount, documentCount, hasRoute };
+        }));
+        setShipmentReadiness(readiness);
+      } else {
+        setShipmentReadiness([]);
+      }
       setUpdatedAt(new Date());
     } catch {
       setError("Unable to retrieve dashboard statistics. Check that Document Dashboard is running on port 5003.");
@@ -91,7 +118,7 @@ function Dashboard() {
           <button type="button" className="secondary-button" onClick={() => loadStatistics(true)} disabled={refreshing}>
             {refreshing ? "Refreshing…" : "Refresh"}
           </button>
-          <button type="button" onClick={() => navigate("/shipments")}>View shipments</button>
+          {canViewShipments && <button type="button" onClick={() => navigate("/shipments")}>View shipments</button>}
         </div>
       </section>
 
@@ -113,14 +140,14 @@ function Dashboard() {
           </div>
           {delayedCount || pendingCount ? (
             <div className="exception-list">
-              {delayedCount > 0 && <button type="button" onClick={() => navigate("/ships")}><span className="status-dot delayed" />{delayedCount} delayed vessel(s)<small>Review vessel availability and latest AIS update</small></button>}
-              {pendingCount > 0 && <button type="button" onClick={() => navigate("/shipments")}><span className="status-dot pending" />{pendingCount} pending shipment(s)<small>Confirm planned movement and next milestone</small></button>}
+              {delayedCount > 0 && (canViewShips ? <button type="button" onClick={() => navigate("/ships")}><span className="status-dot delayed" />{delayedCount} delayed vessel(s)<small>Review vessel availability and latest AIS update</small></button> : <p className="empty-panel">{delayedCount} vessel update(s) need attention.</p>)}
+              {pendingCount > 0 && (canViewShipments ? <button type="button" onClick={() => navigate("/shipments")}><span className="status-dot pending" />{pendingCount} pending shipment(s)<small>Confirm planned movement and next milestone</small></button> : <p className="empty-panel">{pendingCount} shipment update(s) need attention.</p>)}
             </div>
           ) : <p className="empty-panel">No active exceptions. Your fleet is operating normally.</p>}
         </article>
 
         <article className="dashboard-panel activity-panel">
-          <div className="panel-heading"><div><p className="panel-kicker">Live activity</p><h2>Latest shipments</h2></div><button type="button" className="text-button" onClick={() => navigate("/shipments")}>Open list</button></div>
+          <div className="panel-heading"><div><p className="panel-kicker">Live activity</p><h2>Latest shipments</h2></div>{canViewShipments && <button type="button" className="text-button" onClick={() => navigate("/shipments")}>Open list</button>}</div>
           {shipments.length ? <div className="activity-list">{shipments.slice(0, 4).map((shipment) => <button type="button" key={shipment.id} onClick={() => navigate(`/shipments/${shipment.id}`)}><span><strong>{shipment.customer || "Unassigned customer"}</strong><small>Shipment #{shipment.id} · Vessel #{shipment.ship_id ?? "—"}</small></span><em className={`status-badge ${statusClass(shipment.status)}`}>{shipment.status}</em></button>)}</div> : <p className="empty-panel">No shipments have been created yet.</p>}
         </article>
       </section>
@@ -140,8 +167,16 @@ function Dashboard() {
         </article>
       </section>
 
+      {canManageReadiness && <section className="dashboard-panel readiness-panel">
+        <div className="panel-heading"><div><p className="panel-kicker">Operational readiness</p><h2>Shipment checklist</h2><p className="readiness-description">Complete cargo and document records before the shipment moves.</p></div>{canViewShipments && <button type="button" className="text-button" onClick={() => navigate("/shipments")}>Open shipments</button>}</div>
+        {shipmentReadiness.length ? <div className="readiness-list">{shipmentReadiness.map((item) => <button type="button" className="readiness-item" key={item.id} onClick={() => navigate(`/shipments/${item.id}`)}>
+          <div><strong>Shipment #{item.shipmentNumber}</strong><small>{item.completed} of 3 operational checks complete</small></div>
+          <div className="readiness-checks"><span className={item.hasRoute ? "done" : "todo"}>Route</span><span className={item.cargoCount ? "done" : "todo"}>Cargo</span><span className={item.documentCount ? "done" : "todo"}>Documents</span></div>
+        </button>)}</div> : <p className="empty-panel">Create a shipment to start tracking its readiness.</p>}
+      </section>}
+
       <section className="dashboard-panel vessel-panel">
-        <div className="panel-heading"><div><p className="panel-kicker">Fleet activity</p><h2>Recently updated vessels</h2></div><button type="button" className="text-button" onClick={() => navigate("/ships")}>View ships</button></div>
+        <div className="panel-heading"><div><p className="panel-kicker">Fleet activity</p><h2>Recently updated vessels</h2></div>{canViewShips && <button type="button" className="text-button" onClick={() => navigate("/ships")}>View ships</button>}</div>
         {ships.length ? <div className="vessel-table"><div className="vessel-table-head"><span>Vessel</span><span>Status</span><span>Latest ETA</span></div>{ships.map((ship) => <div className="vessel-table-row" key={ship.id}><strong>{ship.name}</strong><span><em className={`status-badge ${statusClass(ship.status)}`}>{ship.status || "Unknown"}</em></span><span>{formatDate(ship.eta)}</span></div>)}</div> : <p className="empty-panel">No vessels are available yet.</p>}
       </section>
 

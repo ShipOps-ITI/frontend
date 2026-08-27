@@ -5,10 +5,13 @@
 .tracking-actions { display: flex; align-items: center; gap: 12px; color: #667085; font-size: .86rem; }
 .tracking-actions button { border: 0; border-radius: 8px; padding: 10px 14px; background: #146c94; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .tracking-actions button:disabled { opacity: .65; cursor: wait; }
-.tracking-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
-.tracking-summary article { display: grid; gap: 4px; padding: 18px 20px; border: 1px solid #d8e4ed; border-radius: 12px; background: linear-gradient(135deg, #fff, #f2f8fb); box-shadow: 0 2px 8px rgb(16 24 40 / 3%); }
+.tracking-summary { display: grid; grid-template-columns: repeat(2, minmax(220px, 360px)); gap: 16px; margin-bottom: 20px; }
+.tracking-summary article { display: grid; gap: 4px; min-height: 112px; padding: 18px 20px; border: 1px solid #d8e4ed; border-radius: 12px; background: linear-gradient(135deg, #fff, #f2f8fb); box-shadow: 0 2px 8px rgb(16 24 40 / 3%); }
 .tracking-summary span, .tracking-summary small { color: #667085; }
 .tracking-summary strong { color: #0b4f6c; font-size: 1.8rem; }
+.tracking-status-summary > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }.tracking-status-summary > div > div { display: grid; gap: 2px; min-width: 0; }.tracking-status-summary > div > div > strong { font-size: 1.35rem; line-height: 1.1; }.tracking-status-summary > div > div > small { font-size: .8rem; white-space: nowrap; }
+.tracking-worker-status { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; padding: 14px 18px; margin: 0 0 20px; border: 1px solid #d8e4ed; border-left: 4px solid #1682a7; border-radius: 10px; background: #fff; color: #475467; }
+.tracking-worker-status div { display: grid; gap: 3px; }.tracking-worker-status strong { color: #12314b; }.tracking-worker-status span { font-size: .86rem; }
 .tracking-page .ship-map-card { padding: 16px; }
 .tracking-page .ship-map { height: min(62vh, 620px); border-radius: 10px; }
 .tracking-map-area { position: relative; }
@@ -18,4 +21,5 @@
 .tracking-legend p { margin: 0 0 0 auto; color: #667085; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; background: #1682a7; }
 .legend-dot.at-sea { background: #16a3d8; }.legend-dot.docked { background: #7c5ce0; }.legend-dot.maintenance { background: #e59a19; }
+@media (max-width: 1000px) { .tracking-summary { grid-template-columns: repeat(2, minmax(220px, 1fr)); } }
 @media (max-width: 760px) { .tracking-page { width: min(100% - 24px, 1180px); padding-top: 28px; }.tracking-hero { align-items: start; flex-direction: column; }.tracking-summary { grid-template-columns: 1fr; }.tracking-legend p { width: 100%; margin-left: 0; }.tracking-actions { width: 100%; justify-content: space-between; } }

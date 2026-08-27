@@ -21,6 +21,7 @@ import CompanyOnboarding from "./pages/Onboarding/CompanyOnboarding";
 
 import Subscription from "./pages/Subscription/Subscription";
 import PaymentSuccess from "./pages/PaymentSuccess/PaymentSuccess";
+import ToastProvider from "./components/Toast/ToastProvider";
 
 function ProtectedLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -28,6 +29,7 @@ function ProtectedLayout() {
   return (
     <div className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}>
       <Navbar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((value) => !value)} />
+      <button type="button" className="mobile-nav-trigger" onClick={() => setSidebarCollapsed(true)} aria-label="Open navigation menu">☰</button>
       <div className="app-content"><Outlet /></div>
       <FloatingAssistant />
     </div>
@@ -37,6 +39,7 @@ function ProtectedLayout() {
 function App() {
   return (
     <BrowserRouter>
+      <ToastProvider>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route element={<PublicRoute />}>
@@ -76,6 +79,7 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

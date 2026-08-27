@@ -60,6 +60,7 @@ const formatAisUpdate = (value) => {
 function Ships() {
   const loggedInUser = getUser();
   const isAdmin = loggedInUser?.role === "ADMIN";
+  const canManageShips = ["ADMIN", "COMPANY_ADMIN", "FLEET_MANAGER"].includes(loggedInUser?.role);
   const [ships, setShips] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [fleets, setFleets] = useState([]);
@@ -224,13 +225,13 @@ function Ships() {
   return (
     <main className="ships-page">
       <section className="ships-header">
-        <p className="eyebrow">ShipOps</p>
-        <h1>Ships</h1>
-        <p>Manage vessel records, fleet assignments, and operating status.</p>
+        <div><p className="eyebrow">ShipOps</p><h1>Ships</h1><p>Manage vessel records, fleet assignments, and operating status.</p></div>
+        {canManageShips && <button type="button" className="add-ship-button" onClick={() => { resetForm(); setShowForm(true); }}>Add new ship</button>}
       </section>
 
-      {showForm && <section className="ship-form-card">
-        <h2>{editingId ? "Edit ship" : "Add ship"}</h2>
+      {showForm && <div className="ship-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) resetForm(); }}>
+        <section className="ship-form-card ship-modal" role="dialog" aria-modal="true" aria-labelledby="ship-form-title">
+          <div className="ship-modal-heading"><div><h2 id="ship-form-title">{editingId ? "Edit ship" : "Add ship"}</h2><p>Assign the vessel to a fleet and add the details required for operations and AIS tracking.</p></div><button type="button" className="modal-close" onClick={resetForm} aria-label="Close ship form">×</button></div>
         <form className="ship-form" onSubmit={handleSubmit}>
           {isAdmin ? (
             <label>
@@ -292,17 +293,17 @@ function Ships() {
           <label>Width (m) <span>(optional)</span><input name="widthMeters" type="number" min="0" step="any" value={form.widthMeters} onChange={handleChange} /></label>
           <div className="form-actions ship-form-actions">
             <button type="submit" disabled={submitting || companies.length === 0 || fleets.length === 0 || (isAdmin && !form.companyId)}>{submitting ? "Saving..." : editingId ? "Save changes" : "Add ship"}</button>
-            {editingId && <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>}
+            <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>
           </div>
         </form>
-      </section>}
+        </section>
+      </div>}
 
       {error && <p className="error-message">{error}</p>}
 
       <section className="ship-list-card">
         <div className="list-heading">
           <div className="ship-list-title"><h2>All ships</h2><span>{pagination?.total || 0}</span></div>
-          <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new ship</button>
         </div>
         <p className="tracking-note">Location data refreshes every 30 seconds.</p>
         {loading ? <p>Loading ships...</p> : ships.length === 0 ? <p>No ships yet.</p> : (

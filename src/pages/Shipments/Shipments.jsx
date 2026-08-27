@@ -67,6 +67,11 @@ function Shipments() {
   const [error, setError] = useState("");
   const [portSearchError, setPortSearchError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [shipmentPendingDelete, setShipmentPendingDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const hasActiveFilters = Boolean(
+    filters.search || filters.status || filters.origin || filters.destination,
+  );
 
   const loadShipments = useCallback(async (page = filters.page) => {
     try {
@@ -258,20 +263,26 @@ function Shipments() {
     setShowForm(true);
   }
 
-  async function handleDelete(shipment) {
-    if (!window.confirm(`Delete shipment ${shipment.shipmentNumber}?`))
-      return;
+  function clearFilters() {
+    setFilters({ page: 1, limit: 10, status: "", origin: "", destination: "", search: "" });
+  }
 
+  async function confirmDelete() {
+    if (!shipmentPendingDelete) return;
     try {
-      await deleteShipment(shipment.id);
+      setDeleting(true);
+      await deleteShipment(shipmentPendingDelete.id);
 
-      if (editingId === shipment.id) {
+      if (editingId === shipmentPendingDelete.id) {
         resetForm();
       }
 
+      setShipmentPendingDelete(null);
       await loadShipments();
     } catch (err) {
       setError(getShipmentError(err, "Unable to delete shipment."));
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -283,12 +294,15 @@ function Shipments() {
           <h1>Shipments</h1>
           <p>{canManageShipments ? "Manage shipments assigned to your operation." : "View shipments assigned to your account."}</p>
         </div>
+        {canManageShipments && <button type="button" className="add-shipment-button" onClick={() => { resetForm(); setShowForm(true); }}>Add new shipment</button>}
       </section>
 
-      {canManageShipments && showForm && <section className="shipment-form-card">
-        <h2>{editingId ? "Edit Shipment" : "Create Shipment"}</h2>
+      {canManageShipments && showForm && <div className="shipment-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) resetForm(); }}>
+        <section className="shipment-form-card shipment-modal" role="dialog" aria-modal="true" aria-labelledby="shipment-form-title">
+          <div className="shipment-modal-heading"><div><h2 id="shipment-form-title">{editingId ? "Edit shipment" : "Create shipment"}</h2><p className="form-note">Set the shipment basics, select its route, then confirm the schedule.</p></div><button type="button" className="modal-close" onClick={resetForm} aria-label="Close shipment form">×</button></div>
 
         <form onSubmit={handleSubmit} className="shipment-form">
+          <p className="form-section-title full-width">Shipment details</p>
 
           <label>
             Shipment Number
@@ -325,9 +339,11 @@ function Shipments() {
             </select>
           </label>
 
-          <label>
+          <p className="form-section-title full-width">Route and ports</p>
+
+          <label className="port-search-field">
             Search origin port
-            <input value={originSearch} onChange={(event) => setOriginSearch(event.target.value)} placeholder="Type at least 2 characters" />
+            <input value={originSearch} onChange={(event) => setOriginSearch(event.target.value)} placeholder="Search by port or country" />
           </label>
           <label>
             Origin port
@@ -339,9 +355,9 @@ function Shipments() {
             {originSearch.trim().length >= 2 && originPorts.length === 0 && !portSearchError && <small>No matching ports found.</small>}
           </label>
 
-          <label>
+          <label className="port-search-field">
             Search destination port
-            <input value={destinationSearch} onChange={(event) => setDestinationSearch(event.target.value)} placeholder="Type at least 2 characters" />
+            <input value={destinationSearch} onChange={(event) => setDestinationSearch(event.target.value)} placeholder="Search by port or country" />
           </label>
           <label>
             Destination port
@@ -352,6 +368,8 @@ function Shipments() {
             </select>
             {destinationSearch.trim().length >= 2 && destinationPorts.length === 0 && !portSearchError && <small>No matching ports found.</small>}
           </label>
+
+          <p className="form-section-title full-width">Schedule and status</p>
 
           <label>
             Departure Date
@@ -400,21 +418,22 @@ function Shipments() {
                   : "Create Shipment"}
             </button>
 
-            {editingId && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={resetForm}
-              >
-                Cancel
-              </button>
-            )}
+            <button type="button" className="secondary-button" onClick={resetForm}>Cancel</button>
           </div>
 
         </form>
-      </section>}
+        </section>
+      </div>}
 
       {(error || portSearchError) && <p className="error-message">{error || portSearchError}</p>}
+
+      {shipmentPendingDelete && <div className="delete-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleting) setShipmentPendingDelete(null); }}>
+        <section className="delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-shipment-title" aria-describedby="delete-shipment-description">
+          <div className="delete-dialog-icon" aria-hidden="true">!</div>
+          <div><p className="section-kicker">Confirm deletion</p><h2 id="delete-shipment-title">Delete shipment {shipmentPendingDelete.shipmentNumber}?</h2><p id="delete-shipment-description">This permanently removes the shipment record. Cargo and documents should be removed first if they are still linked to it.</p></div>
+          <div className="delete-dialog-actions"><button type="button" className="secondary-button" onClick={() => setShipmentPendingDelete(null)} disabled={deleting}>Cancel</button><button type="button" className="danger-button" onClick={confirmDelete} disabled={deleting}>{deleting ? "Deleting..." : "Delete shipment"}</button></div>
+        </section>
+      </div>}
 
       <section className="shipment-list-card">
 
@@ -423,7 +442,6 @@ function Shipments() {
             <h2>All Shipments</h2>
             <span>{pagination?.total ?? shipments.length}</span>
           </div>
-          {canManageShipments && <button type="button" onClick={() => { resetForm(); setShowForm(true); }}>Add new shipment</button>}
         </div>
 
         <div className="filter-bar">
@@ -444,6 +462,15 @@ function Shipments() {
             </select>
           </label>
 
+          <div className="filter-toolbar">
+            <label className="filter-search">
+              <span className="visually-hidden">Search shipments</span>
+              <svg className="filter-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.2 4.2" /></svg>
+              <input name="search" value={filters.search} onChange={handleFilterChange} placeholder="Search shipment, customer, or route" />
+            </label>
+            <button type="button" className="filter-reset" onClick={clearFilters} disabled={!hasActiveFilters}>Clear</button>
+          </div>
+
           <label>
             Origin
             <input
@@ -461,16 +488,6 @@ function Shipments() {
               value={filters.destination}
               onChange={handleFilterChange}
               placeholder="Destination"
-            />
-          </label>
-
-          <label>
-            Search
-            <input
-              name="search"
-              value={filters.search}
-              onChange={handleFilterChange}
-              placeholder="Shipment #, customer, origin, destination"
             />
           </label>
 
@@ -520,6 +537,17 @@ function Shipments() {
 
                   {canManageShipments && <div className="row-actions">
                     <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/shipments/${shipment.id}`);
+                      }}
+                    >
+                      View cargo
+                    </button>
+
+                    <button
                       className="secondary-button"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -533,7 +561,7 @@ function Shipments() {
                       className="danger-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(shipment);
+                        setShipmentPendingDelete(shipment);
                       }}
                     >
                       Delete

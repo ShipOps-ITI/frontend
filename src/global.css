@@ -24,3 +24,5 @@ textarea:focus-visible {
   outline: 3px solid rgb(14 116 144 / 28%);
   outline-offset: 2px;
 }
+
+.mobile-nav-trigger { display: none; }
