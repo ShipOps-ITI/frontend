@@ -44,11 +44,24 @@ function Fleets() {
     try {
       setLoading(true);
       setError("");
-      const [fleetResponse, companyResponse, usersResponse] = await Promise.all([getFleets(page), getCompanies(1, 100), getUsers()]);
+      const fleetResponse = await getFleets(page);
       setFleets(fleetResponse.data.data);
       setPagination(fleetResponse.data.pagination);
-      setCompanies(companyResponse.data.data);
-      setFleetManagers((usersResponse.data || []).filter((user) => user.role === "FLEET_MANAGER" && user.isActive));
+
+      // Fleet Managers only need their assigned fleet records. Companies and
+      // user-directory endpoints are intentionally restricted to roles that
+      // can create fleets or change manager assignments.
+      if (canManageFleetStructure) {
+        const [companyResponse, usersResponse] = await Promise.all([
+          getCompanies(1, 100),
+          getUsers(),
+        ]);
+        setCompanies(companyResponse.data.data);
+        setFleetManagers((usersResponse.data || []).filter((user) => user.role === "FLEET_MANAGER" && user.isActive));
+      } else {
+        setCompanies([]);
+        setFleetManagers([]);
+      }
     } catch (requestError) {
       setError(getErrorMessage(requestError, "Unable to load fleets."));
     } finally {
